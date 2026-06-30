@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      conversation_logs: {
+        Row: {
+          agent_response: string | null
+          created_at: string
+          id: string
+          knowledge_chunks_used: string[] | null
+          session_id: string | null
+          user_message: string | null
+        }
+        Insert: {
+          agent_response?: string | null
+          created_at?: string
+          id?: string
+          knowledge_chunks_used?: string[] | null
+          session_id?: string | null
+          user_message?: string | null
+        }
+        Update: {
+          agent_response?: string | null
+          created_at?: string
+          id?: string
+          knowledge_chunks_used?: string[] | null
+          session_id?: string | null
+          user_message?: string | null
+        }
+        Relationships: []
+      }
+      knowledge_base: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          is_featured: boolean
+          tags: string[] | null
+          title: string
+          updated_at: string
+          week_number: number | null
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          week_number?: number | null
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          week_number?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
