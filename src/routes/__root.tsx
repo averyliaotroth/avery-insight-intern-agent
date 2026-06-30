@@ -30,6 +30,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Avery Liao-Troth | AE Intern · Insight Enterprises 2026" },
+      { name: "description", content: "An AI-powered web application that answers questions about an Account Executive Intern's experience at Insight Enterprises." },
+      { property: "og:description", content: "An AI-powered web application that answers questions about an Account Executive Intern's experience at Insight Enterprises." },
+      { name: "twitter:description", content: "An AI-powered web application that answers questions about an Account Executive Intern's experience at Insight Enterprises." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d13a5612-dba0-4080-ba58-e3ba7b492a95/id-preview-56a0d570--bce6985a-038e-4292-9092-b8a04a63aa75.lovable.app-1782845609115.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d13a5612-dba0-4080-ba58-e3ba7b492a95/id-preview-56a0d570--bce6985a-038e-4292-9092-b8a04a63aa75.lovable.app-1782845609115.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
