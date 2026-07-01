@@ -53,47 +53,78 @@ function AboutPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
       <header>
-        <h1 className="text-4xl sm:text-5xl font-bold text-[var(--harmony)] tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-bold 
+          text-[var(--harmony)] tracking-tight">
           Avery Liao-Troth
         </h1>
-        <p className="mt-3 text-[20px] text-[var(--muted-foreground)]">
-          Account Executive Intern — Insight Enterprises, 2026 GTM Sales Internship
+        <p className="mt-3 text-[20px] 
+          text-[var(--muted-foreground)]">
+          Account Executive Intern — Insight Enterprises, 
+          2026 GTM Sales Internship
         </p>
-        <div className="mt-6 h-[3px] w-full bg-insight-gradient rounded-full" />
+        <div className="mt-6 h-[3px] w-full 
+          bg-insight-gradient rounded-full" />
       </header>
 
       <section className="grid md:grid-cols-2 gap-8 mt-12">
+
+        {/* LEFT CARD — About the Intern */}
         <div className="bg-white rounded-[12px] shadow-card p-6">
-          <h2 className="text-xl font-semibold text-[var(--harmony)]">About the Intern</h2>
-          <img src="/avery-photo.jpg" 
-            alt="Avery Liao-Troth" 
-            className="mt-4 w-[200px] h-[200px] rounded-[12px] 
-              object-cover object-top"
+          <h2 className="text-xl font-semibold 
+            text-[var(--harmony)]">
+            About the Intern
+          </h2>
+          <img
+            src="/avery-photo.jpg"
+            alt="Avery Liao-Troth"
+            className="mt-4 w-[200px] h-[200px] 
+              rounded-[12px] object-cover object-top"
           />
-          </div>
-          <p className="mt-5 text-[15px] leading-relaxed text-[var(--neutral-ink)]">
+          <p className="mt-5 text-[15px] leading-relaxed 
+            text-[var(--neutral-ink)]">
             [Avery's bio and background will go here]
           </p>
         </div>
+        {/* END LEFT CARD */}
 
+        {/* RIGHT CARD — About This Agent */}
         <div className="bg-white rounded-[12px] shadow-card p-6">
-          <h2 className="text-xl font-semibold text-[var(--harmony)]">About This Agent</h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-[var(--neutral-ink)]">
-            This AI agent was built as a capstone project for the 2026 GTM Sales Internship at
-            Insight Enterprises. It is grounded in a curated knowledge base of Avery's real research,
-            reflections, and account work — so every answer comes straight from the documented
+          <h2 className="text-xl font-semibold 
+            text-[var(--harmony)]">
+            About This Agent
+          </h2>
+          <p className="mt-4 text-[15px] leading-relaxed 
+            text-[var(--neutral-ink)]">
+            This AI agent was built as a capstone project 
+            for the 2026 GTM Sales Internship at Insight 
+            Enterprises. It is grounded in a curated 
+            knowledge base of Avery's real research, 
+            reflections, and account work — so every 
+            answer comes straight from the documented 
             internship experience.
           </p>
-          <p className="mt-3 text-[15px] leading-relaxed text-[var(--neutral-ink)]">
-            [Project description will go here]
+          <p className="mt-3 text-[15px] leading-relaxed 
+            text-[var(--neutral-ink)]">
+            Built using React, Lovable, and OpenAI's 
+            gpt-4o-mini model, the agent retrieves 
+            relevant content from a live Supabase 
+            knowledge base before every response — 
+            ensuring answers are always grounded in 
+            real documented experience, never invented.
           </p>
           <div className="mt-5">
-            <h3 className="text-sm font-semibold text-[var(--neutral-ink)] mb-2">Tech Stack</h3>
+            <h3 className="text-sm font-semibold 
+              text-[var(--neutral-ink)] mb-2">
+              Tech Stack
+            </h3>
             <div className="flex flex-wrap gap-2">
-              {["React", "Supabase", "OpenAI API", "Lovable"].map((t) => (
+              {["React", "Supabase", "OpenAI API", 
+                "Lovable"].map((t) => (
                 <span
                   key={t}
-                  className="bg-[var(--vision)] text-white text-[12px] font-medium px-3 py-1 rounded-full"
+                  className="bg-[var(--vision)] text-white 
+                    text-[12px] font-medium px-3 py-1 
+                    rounded-full"
                 >
                   {t}
                 </span>
@@ -101,26 +132,37 @@ function AboutPage() {
             </div>
           </div>
         </div>
+        {/* END RIGHT CARD */}
+
       </section>
 
       <section className="mt-14">
-        <h2 className="text-2xl font-bold text-[var(--harmony)] tracking-tight">
+        <h2 className="text-2xl font-bold 
+          text-[var(--harmony)] tracking-tight">
           The 8 Capstone Areas
         </h2>
         <p className="mt-2 text-[var(--muted-foreground)]">
-          Mapped directly to the official 2026 GTM Sales Capstone requirements.
+          Mapped directly to the official 2026 GTM Sales 
+          Capstone requirements.
         </p>
         <div className="mt-6 grid sm:grid-cols-2 gap-4">
           {CAPSTONES.map((c, i) => (
             <div
               key={c.title}
-              className="bg-[var(--hunger-lite)] border border-[var(--harmony)]/30 rounded-[12px] p-5"
+              className="bg-[var(--hunger-lite)] 
+                border border-[var(--harmony)]/30 
+                rounded-[12px] p-5"
             >
-              <div className="text-[12px] font-semibold text-[var(--harmony)]/70 mb-1">
+              <div className="text-[12px] font-semibold 
+                text-[var(--harmony)]/70 mb-1">
                 0{i + 1}
               </div>
-              <h3 className="font-semibold text-[var(--harmony)] text-[16px]">{c.title}</h3>
-              <p className="mt-1.5 text-[14px] text-[var(--neutral-ink)] leading-relaxed">
+              <h3 className="font-semibold 
+                text-[var(--harmony)] text-[16px]">
+                {c.title}
+              </h3>
+              <p className="mt-1.5 text-[14px] 
+                text-[var(--neutral-ink)] leading-relaxed">
                 {c.desc}
               </p>
             </div>
