@@ -76,7 +76,7 @@ function AboutPage() {
           <img
             src="https://raw.githubusercontent.com/averyliaotroth/avery-insight-intern-agent/main/public/avery-headshot.jpeg"
             alt="Avery Liao-Troth"
-            className="w-[240px] h-[240px]
+            className="w-[280px] h-[280px]
               rounded-[12px] object-cover object-top"
           />
           <p className="mt-4 text-[15px] font-semibold
