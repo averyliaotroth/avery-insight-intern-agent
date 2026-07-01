@@ -82,7 +82,33 @@ function AboutPage() {
           />
           <p className="mt-5 text-[15px] leading-relaxed 
             text-[var(--neutral-ink)]">
-            [Avery's bio and background will go here]
+            Avery Liao-Troth has built robots, run financial 
+            analysis, designed product prototypes, conducted 
+            archaeological fieldwork, and piloted a Disney 
+            monorail. The throughline is not chaos. It is 
+            curiosity. Every role has been about understanding 
+            how people, systems, and problems fit together, and 
+            then building something better.
+
+            She studied people before she studied business, and 
+            that is exactly why she thinks about technology 
+            differently. An anthropology degree from the 
+            University of Florida and a Master's in Management 
+            from the University of Central Florida gave her 
+            something most builders do not have, a framework 
+            for understanding the humans on the other side of 
+            every product decision.
+
+            This summer she joined Insight Enterprises as an 
+            Account Executive Intern, where she explored how AI 
+            is reshaping the way businesses operate and built 
+            this agent as her capstone project, a full-stack AI 
+            product designed, architected, and shipped from 
+            scratch.
+            
+            Avery lives and works at the intersection of people, 
+            technology, design, and business. That Venn diagram 
+            is not a compromise. It is the point.
           </p>
         </div>
         {/* END LEFT CARD */}
