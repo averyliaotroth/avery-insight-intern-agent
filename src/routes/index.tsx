@@ -30,7 +30,7 @@ const SUGGESTIONS = [
 const WELCOME: Message = {
   id: "welcome",
   role: "agent",
-  text: "Hi! I'm a full-stack AI agent built by Avery Liao-Troth as her capstone project during her Account Executive Internship at Insight Enterprises. She conceptualized, designed, and deployed me to explore AI product development firsthand, from defining requirements and architecting a solution to building, iterating, and shipping a working product. Ask me about her experience, her process, or what she learned along the way.",
+  text: "Hi! I'm a full-stack AI agent built by Avery Liao-Troth as her capstone project during her Account Executive Internship at Insight. She conceptualized, designed, and deployed me to explore AI product development firsthand, from defining requirements and architecting a solution to building, iterating, and shipping a working product. Ask me about her experience, her process, or what she learned along the way.",
   timestamp: new Date(),
   welcome: true,
 };
@@ -107,8 +107,7 @@ function ChatPage() {
           Ask me anything about my internship at Insight
         </h1>
         <p className="mt-3 text-[var(--muted-foreground)] max-w-2xl mx-auto text-[15px]">
-          I'm an AI agent trained on Avery's real work, research, and reflections from the 2026 GTM
-          Sales Account Executive Internship program.
+          I'm an AI agent trained on Avery's real work, research, and reflections from her Account Executive Internship at Insight.
         </p>
       </section>
 
