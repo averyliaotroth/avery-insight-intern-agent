@@ -75,7 +75,7 @@ function AboutPage() {
             About the Intern
           </h2>
           <img
-            src="https://raw.githubusercontent.com/averyliaotroth/avery-insight-intern-agent/main/public/avery-photo.jpeg"
+            src="https://raw.githubusercontent.com/averyliaotroth/avery-insight-intern-agent/main/public/avery-headshot.jpeg"
             alt="Avery Liao-Troth"
             className="mt-4 w-[200px] h-[200px] 
               rounded-[12px] object-cover object-top"
