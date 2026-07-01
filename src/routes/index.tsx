@@ -30,7 +30,7 @@ const SUGGESTIONS = [
 const WELCOME: Message = {
   id: "welcome",
   role: "agent",
-  text: "Hi! I'm an AI agent built on Avery's real experience as an Account Executive Intern at Insight Enterprises. I can speak to the account Avery supported, the work they did alongside the AE team, the tools and AI they used, and what they learned along the way. Use the suggestions below to get started — or ask me anything!",
+  text: "Hi! I'm a full-stack AI agent built by Avery Liao-Troth as her capstone project during her Account Executive Internship at Insight Enterprises. She conceptualized, designed, and deployed me to explore AI product development firsthand, from defining requirements and architecting a solution to building, iterating, and shipping a working product. Ask me about her experience, her process, or what she learned along the way.",
   timestamp: new Date(),
   welcome: true,
 };
