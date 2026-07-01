@@ -46,7 +46,7 @@ function AdminPage() {
 
   function tryLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (pwd === "insight2026") {
+    if (pwd === "112897") {
       localStorage.setItem(AUTH_KEY, "1");
       setAuthed(true);
     } else {
