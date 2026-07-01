@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import type { Database } from "@/integrations/supabase/types";
 
 const ADMIN_PASSWORD = "insight2026";
 
@@ -25,10 +27,51 @@ function checkPassword(p: string) {
   if (p !== ADMIN_PASSWORD) throw new Error("Unauthorized");
 }
 
+// Server-side admin client — uses SUPABASE_URL + SERVICE_ROLE_KEY, bypasses RLS.
+// Kept inside handlers so this module stays safe to import from route files.
+function getAdminClient() {
+  const url = process.env.SUPABASE_URL;
+  const serviceKey =
+    process.env.SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    throw new Error("Missing SUPABASE_URL or SERVICE_ROLE_KEY on the server.");
+  }
+  return createClient<Database>(url, serviceKey, {
+    global: {
+      // New-format sb_secret_* keys are opaque, not JWTs. Send them as apikey
+      // and drop the Bearer header so PostgREST authenticates correctly.
+      fetch: (input, init) => {
+        const headers = new Headers(
+          typeof Request !== "undefined" && input instanceof Request
+            ? input.headers
+            : undefined,
+        );
+        if (init?.headers) {
+          new Headers(init.headers).forEach((v, k) => headers.set(k, v));
+        }
+        if (
+          (serviceKey.startsWith("sb_secret_") ||
+            serviceKey.startsWith("sb_publishable_")) &&
+          headers.get("Authorization") === `Bearer ${serviceKey}`
+        ) {
+          headers.delete("Authorization");
+        }
+        headers.set("apikey", serviceKey);
+        return fetch(input, { ...init, headers });
+      },
+    },
+    auth: {
+      storage: undefined,
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
 export const listEntries = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => ListInput.parse(d ?? {}))
   .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getAdminClient();
     const { data, error } = await supabaseAdmin
       .from("knowledge_base")
       .select("*")
@@ -42,7 +85,7 @@ export const upsertEntry = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => EntryInput.parse(d))
   .handler(async ({ data }) => {
     checkPassword(data.password);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getAdminClient();
     const row = {
       category: data.category,
       title: data.title,
@@ -65,7 +108,7 @@ export const deleteEntry = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => DeleteInput.parse(d))
   .handler(async ({ data }) => {
     checkPassword(data.password);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getAdminClient();
     const { error } = await supabaseAdmin.from("knowledge_base").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
