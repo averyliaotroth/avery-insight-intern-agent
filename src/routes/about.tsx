@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About · Avery Liao-Troth | Insight Enterprises 2026" },
+      { title: "About · Avery Liao-Troth | Insight 2026" },
       {
         name: "description",
         content:
@@ -96,8 +96,8 @@ function AboutPage() {
           <p className="mt-4 text-[15px] leading-relaxed 
             text-[var(--neutral-ink)]">
             This agent was designed and built by Avery as her 
-            internship capstone at Insight Enterprises. It uses 
-            a retrieval-augmented generation architecture, 
+            internship capstone at Insight. It uses a
+            retrieval-augmented generation architecture, 
             pulling from a curated knowledge base of her real 
             research and reflections before every response, so 
             answers are always grounded in documented experience, 
