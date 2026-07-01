@@ -3,11 +3,11 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About · Avery Liao-Troth | Insight Enterprises 2026" },
+      { title: "About · Avery Liao-Troth | Insight 2026" },
       {
         name: "description",
         content:
-          "About Avery Liao-Troth, an Account Executive Intern at Insight Enterprises, and the AI agent built on her internship experience.",
+          "About Avery Liao-Troth, an Account Executive Intern at Insight, and the AI agent built on her internship experience.",
       },
     ],
   }),
@@ -61,8 +61,7 @@ function AboutPage() {
         </h1>
         <p className="mt-3 text-[20px]
           text-[var(--muted-foreground)]">
-          Account Executive Intern, Insight Enterprises,
-          2026 GTM Sales Internship
+          Account Executive Intern, Insight 2026
         </p>
         <div className="mt-6 h-[3px] w-full
           bg-insight-gradient rounded-full" />
@@ -71,11 +70,11 @@ function AboutPage() {
       {/* TOP TWO CARDS */}
       <section className="grid md:grid-cols-2 gap-8 mt-12">
 
-        {/* LEFT CARD — Photo Only */}
+        {/* LEFT CARD — Photo */}
         <div className="bg-white rounded-[12px] shadow-card p-6
           flex flex-col items-center justify-center">
           <img
-            src="https://raw.githubusercontent.com/averyliaotroth/avery-insight-intern-agent/main/public/avery-photo.jpeg"
+            src="https://raw.githubusercontent.com/averyliaotroth/avery-insight-intern-agent/main/public/avery-headshot.jpeg"
             alt="Avery Liao-Troth"
             className="w-[240px] h-[240px]
               rounded-[12px] object-cover object-top"
@@ -90,7 +89,7 @@ function AboutPage() {
           </p>
           <p className="mt-1 text-[13px]
             text-[var(--muted-foreground)] text-center">
-            Insight Enterprises, 2026
+            Insight, 2026
           </p>
         </div>
         {/* END LEFT CARD */}
@@ -144,7 +143,7 @@ function AboutPage() {
 
       </section>
 
-      {/* FULL WIDTH BIO SECTION */}
+      {/* FULL WIDTH BIO */}
       <section className="mt-8">
         <div className="bg-white rounded-[12px] shadow-card p-6">
           <h2 className="text-xl font-semibold
@@ -174,11 +173,11 @@ function AboutPage() {
           </p>
           <p className="mt-3 text-[15px] leading-relaxed
             text-[var(--neutral-ink)]">
-            This summer she joined Insight Enterprises as
-            an Account Executive Intern, where she explored
-            how AI is reshaping the way businesses operate
-            and built this agent as her capstone project,
-            a full-stack AI product designed, architected,
+            This summer she joined Insight as an Account
+            Executive Intern, where she explored how AI is 
+            reshaping the way businesses operate and built
+            this agent as her capstone project, a
+            full-stack AI product designed, architected,
             and shipped from scratch.
           </p>
           <p className="mt-3 text-[15px] leading-relaxed
