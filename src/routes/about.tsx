@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Camera } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -66,8 +65,11 @@ function AboutPage() {
       <section className="grid md:grid-cols-2 gap-8 mt-12">
         <div className="bg-white rounded-[12px] shadow-card p-6">
           <h2 className="text-xl font-semibold text-[var(--harmony)]">About the Intern</h2>
-          <div className="mt-4 w-[200px] h-[200px] rounded-[12px] bg-[var(--clarity)] flex items-center justify-center text-[var(--muted-foreground)]">
-            <Camera className="w-10 h-10" />
+          <img src="/avery-photo.jpg" 
+            alt="Avery Liao-Troth" 
+            className="mt-4 w-[200px] h-[200px] rounded-[12px] 
+              object-cover object-top"
+          />
           </div>
           <p className="mt-5 text-[15px] leading-relaxed text-[var(--neutral-ink)]">
             [Avery's bio and background will go here]
