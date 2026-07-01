@@ -23,14 +23,22 @@ You only speak to what is documented in your knowledge base — if something is 
 export const chatWithAgent = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => ChatInput.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error("AI service is not configured.");
 
+    const { createClient } = await import("@supabase/supabase-js");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Anon/publishable client for READ operations
+    const supabaseRead = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_PUBLISHABLE_KEY!,
+      { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+    );
 
     // Retrieve top relevant knowledge chunks
     const q = data.message.replace(/[%_]/g, " ").slice(0, 200);
-    const { data: matches } = await supabaseAdmin
+    const { data: matches } = await supabaseRead
       .from("knowledge_base")
       .select("id,category,title,content,tags")
       .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
@@ -38,7 +46,7 @@ export const chatWithAgent = createServerFn({ method: "POST" })
 
     let chunks = matches ?? [];
     if (chunks.length === 0) {
-      const { data: featured } = await supabaseAdmin
+      const { data: featured } = await supabaseRead
         .from("knowledge_base")
         .select("id,category,title,content,tags")
         .eq("is_featured", true)
@@ -59,14 +67,14 @@ export const chatWithAgent = createServerFn({ method: "POST" })
 
     const userPrompt = `KNOWLEDGE BASE CONTEXT:\n${contextText}\n\n---\nUser question: ${data.message}\n\nIf the knowledge base does not cover the question, respond exactly: "I don't have specific information about that in my knowledge base yet — but feel free to ask me something else about my internship experience!"`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
@@ -79,14 +87,14 @@ export const chatWithAgent = createServerFn({ method: "POST" })
     if (!res.ok) {
       const text = await res.text();
       if (res.status === 429) throw new Error("Rate limit reached. Please try again in a moment.");
-      if (res.status === 402) throw new Error("AI credits exhausted. Please contact the site owner.");
+      if (res.status === 401) throw new Error("OpenAI API key is invalid.");
       throw new Error(`AI request failed: ${text.slice(0, 200)}`);
     }
 
     const payload = await res.json();
     const reply: string = payload.choices?.[0]?.message?.content ?? "";
 
-    // Log the conversation (fire and forget; do not fail user if logging fails)
+    // Log the conversation via admin client (RLS default-deny on writes)
     await supabaseAdmin.from("conversation_logs").insert({
       session_id: data.sessionId,
       user_message: data.message,
@@ -96,3 +104,4 @@ export const chatWithAgent = createServerFn({ method: "POST" })
 
     return { reply, categoryTag, chunksUsed: chunks.length };
   });
+
