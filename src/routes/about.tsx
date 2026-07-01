@@ -7,7 +7,7 @@ export const Route = createFileRoute("/about")({
       {
         name: "description",
         content:
-          "About Avery Liao-Troth, an Account Executive Intern in the 2026 GTM Sales Internship at Insight Enterprises, and the AI agent built on their internship experience.",
+          "About Avery Liao-Troth, an Account Executive Intern at Insight, and the AI agent built on her internship experience.",
       },
     ],
   }),
@@ -59,7 +59,7 @@ function AboutPage() {
         </h1>
         <p className="mt-3 text-[20px] 
           text-[var(--muted-foreground)]">
-          Account Executive Intern — Insight Enterprises, 
+          Account Executive Intern — Insight, 
           2026 GTM Sales Internship
         </p>
         <div className="mt-6 h-[3px] w-full 
@@ -95,22 +95,21 @@ function AboutPage() {
           </h2>
           <p className="mt-4 text-[15px] leading-relaxed 
             text-[var(--neutral-ink)]">
-            This AI agent was built as a capstone project 
-            for the 2026 GTM Sales Internship at Insight 
-            Enterprises. It is grounded in a curated 
-            knowledge base of Avery's real research, 
-            reflections, and account work — so every 
-            answer comes straight from the documented 
-            internship experience.
+            This agent was designed and built by Avery as her 
+            internship capstone at Insight Enterprises. It uses 
+            a retrieval-augmented generation architecture, 
+            pulling from a curated knowledge base of her real 
+            research and reflections before every response, so 
+            answers are always grounded in documented experience, 
+            never invented.
           </p>
           <p className="mt-3 text-[15px] leading-relaxed 
             text-[var(--neutral-ink)]">
-            Built using React, Lovable, and OpenAI's 
-            gpt-4o-mini model, the agent retrieves 
-            relevant content from a live Supabase 
-            knowledge base before every response — 
-            ensuring answers are always grounded in 
-            real documented experience, never invented.
+            The tech stack includes React, Supabase, OpenAI's 
+            gpt-4o-mini, and Lovable as the build platform. 
+            Every response is generated only after querying the 
+            live knowledge base, ensuring accuracy and 
+            specificity across every conversation.
           </p>
           <div className="mt-5">
             <h3 className="text-sm font-semibold 
