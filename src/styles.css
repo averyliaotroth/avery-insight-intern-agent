@@ -82,6 +82,43 @@
   --ring: #D40E8C;
 }
 
+.dark {
+  /* Insight brand — dark mode */
+  --hunger: #E91FA0;
+  --heart: #C4134F;
+  --harmony: #7B4FA6;
+  --zeal: #6BA3F5;
+  --vision: #5DD4F5;
+  --hunger-lite: #3D1A3D;
+  --harmony-lite: #2D1F45;
+  --clarity: #1A1A1A;
+  --neutral-ink: #F0EBE8;
+
+  --gradient-insight: linear-gradient(135deg, #E91FA0, #C4134F, #7B4FA6);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 8px 32px rgba(123, 79, 166, 0.3);
+
+  --background: #0F0F0F;
+  --foreground: #F0EBE8;
+  --card: #1C1C1C;
+  --card-foreground: #F0EBE8;
+  --popover: #1C1C1C;
+  --popover-foreground: #F0EBE8;
+  --primary: #E91FA0;
+  --primary-foreground: #FFFFFF;
+  --secondary: #2D1F45;
+  --secondary-foreground: #C4A8E8;
+  --muted: #1A1A1A;
+  --muted-foreground: #9E9894;
+  --accent: #3D1A3D;
+  --accent-foreground: #E8DAFF;
+  --destructive: #C4134F;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #E91FA0;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
