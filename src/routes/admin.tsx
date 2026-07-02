@@ -19,7 +19,7 @@ const CATEGORIES = [
   "Outcomes & Future State",
   "Growth & Learnings",
   "Looking Forward",
-  "Research"
+  "Research",
   "This Agent",
 ] as const;
 
