@@ -19,12 +19,12 @@ type Message = {
 };
 
 const SUGGESTIONS = [
-  "What account did you support this summer?",
-  "What was your role on the account team?",
-  "What were your most meaningful experiences?",
-  "How did you contribute to sales impact?",
-  "What tools and AI did you use?",
-  "What outcomes did you deliver?",
+  "What account did she support this summer?",
+  "What was her role on the account team?",
+  "What were her most meaningful experiences?",
+  "How did she contribute to sales impact?",
+  "What tools and AI did she use?",
+  "What outcomes did she deliver?",
 ];
 
 const WELCOME: Message = {
