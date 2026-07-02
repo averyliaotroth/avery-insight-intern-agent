@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function NavBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -20,7 +21,7 @@ export function NavBar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-[rgba(0,0,0,0.06)]">
+    <header className="sticky top-0 z-40 bg-[var(--card)] border-b border-[var(--border)]">
       <div className="mx-auto max-w-6xl h-16 px-6 flex items-center justify-between">
         <Link to="/" className="font-bold text-[18px] text-[var(--harmony)] tracking-tight">
           Avery Liao-Troth
@@ -30,10 +31,13 @@ export function NavBar() {
           {link("/about", "About")}
           {link("/admin", "Admin")}
         </nav>
-        <div className="hidden sm:block">
-          <span className="bg-insight-gradient text-white text-[12px] font-medium px-3 py-1.5 rounded-full">
-            AE Intern '26 · Insight
-          </span>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <div className="hidden sm:block">
+            <span className="bg-insight-gradient text-white text-[12px] font-medium px-3 py-1.5 rounded-full">
+              AE Intern '26 · Insight
+            </span>
+          </div>
         </div>
       </div>
       <div className="h-[3px] bg-insight-gradient" />
