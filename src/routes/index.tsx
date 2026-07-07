@@ -166,7 +166,7 @@ function ChatPage() {
           )}
         </div>
 
-        <div className="border-t border-[rgba(0,0,0,0.06)] p-3 sm:p-4 space-y-3">
+        <div className="border-t border-[var(--border)] p-3 sm:p-4 space-y-3">
           <div className="flex gap-2 overflow-x-auto sm:flex-wrap sm:overflow-visible pb-1 -mx-1 px-1">
             {SUGGESTIONS.map((q) => (
               <button
