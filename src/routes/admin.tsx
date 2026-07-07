@@ -304,7 +304,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
               filtered.map((e) => (
                 <tr key={e.id} className="border-t border-[var(--border)]">
                   <td className="px-4 py-3">
-                    <span className="bg-[var(--harmony-lite)] text-[var(--harmony)] text-[12px] font-medium px-2 py-0.5 rounded-full">
+                    <span className="bg-[var(--harmony-lite)] text-[var(--harmony)] text-[12px] font-medium px-2 py-0.5 rounded-full truncate max-w-[120px] block">
                       {e.category}
                     </span>
                   </td>
