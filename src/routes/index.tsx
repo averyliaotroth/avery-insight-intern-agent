@@ -144,7 +144,7 @@ function ChatPage() {
                         {m.category}
                       </span>
                     )}
-                    <span className="text-[11px] text-[var(--muted-foreground)]">
+                    <span className="text-[11px] text-[var(--muted-foreground)]" suppressHydrationWarning>
                       {formatTime(m.timestamp)}
                     </span>
                   </div>
