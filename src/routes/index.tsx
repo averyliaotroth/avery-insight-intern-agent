@@ -173,7 +173,7 @@ function ChatPage() {
                 key={q}
                 onClick={() => send(q)}
                 disabled={loading}
-                className="shrink-0 text-[13px] px-3 py-1.5 rounded-full border border-[var(--harmony)] text-[var(--harmony)] bg-white hover:bg-[var(--harmony)] hover:text-white disabled:opacity-50 transition-colors"
+                className="shrink-0 text-[13px] px-3 py-1.5 rounded-full border border-[var(--harmony)] text-[var(--harmony)] bg-[var(--card)] hover:bg-[var(--harmony)] hover:text-white disabled:opacity-50 transition-colors"
               >
                 {q}
               </button>
