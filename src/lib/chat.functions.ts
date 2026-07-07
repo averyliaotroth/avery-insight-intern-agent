@@ -120,14 +120,19 @@ export const chatWithAgent = createServerFn({ method: "POST" })
     const reply: string = payload.choices?.[0]?.message?.content ?? "";
 
     // Log the conversation via admin client (RLS default-deny on writes)
-    supabaseAdmin.from("conversation_logs").insert({
+    try {
+  await supabaseAdmin.from("conversation_logs").insert({
     session_id: data.sessionId,
     user_message: data.message,
     agent_response: reply,
     knowledge_chunks_used: chunks.map((c) => `${c.category}: ${c.title}`),
-  }).catch((err) => {
-    console.warn("[ConversationLog] Failed to log:", err.message);
   });
+} catch (err) {
+  console.warn("[ConversationLog] Failed to log:", err instanceof Error ? err.message : err);
+}
+
+return { reply, categoryTag, chunksUsed: chunks.length };
+
 
   return { reply, categoryTag, chunksUsed: chunks.length };
   });
