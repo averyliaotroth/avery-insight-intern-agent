@@ -58,7 +58,7 @@ function AdminPage() {
   if (!authed) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-6">
-        <div className="bg-white rounded-[12px] shadow-elevated w-full max-w-sm overflow-hidden">
+        <div className="bg-[var(--card)] rounded-[12px] shadow-elevated w-full max-w-sm overflow-hidden">
           <div className="h-[6px] bg-insight-gradient" />
           <form onSubmit={tryLogin} className="p-7">
             <h1 className="text-xl font-semibold text-[var(--harmony)]">Admin access</h1>
@@ -70,7 +70,7 @@ function AdminPage() {
               value={pwd}
               onChange={(e) => setPwd(e.target.value)}
               placeholder="Password"
-              className="mt-5 w-full px-4 py-2.5 rounded-[8px] border border-[rgba(0,0,0,0.12)] outline-none focus:border-[var(--hunger)] bg-white"
+              className="mt-5 w-full px-4 py-2.5 rounded-[8px] border border-[var(--border)] outline-none focus:border-[var(--hunger)] bg-[var(--card)]"
               autoFocus
             />
             <button
@@ -236,13 +236,13 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-[12px] shadow-card p-4 mb-4 flex flex-wrap items-center gap-3">
+      <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
           <label className="text-xs font-medium text-[var(--muted-foreground)]">Category</label>
           <select
             value={filterCat}
             onChange={(e) => setFilterCat(e.target.value)}
-            className="px-3 py-1.5 rounded-[8px] border border-[rgba(0,0,0,0.12)] text-sm bg-white"
+            className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)]"
           >
             <option>All</option>
             {CATEGORIES.map((c) => (
@@ -255,7 +255,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
           <select
             value={filterWeek}
             onChange={(e) => setFilterWeek(e.target.value)}
-            className="px-3 py-1.5 rounded-[8px] border border-[rgba(0,0,0,0.12)] text-sm bg-white"
+            className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)]"
           >
             <option>All</option>
             {Array.from({ length: 10 }, (_, i) => i + 1).map((w) => (
@@ -268,9 +268,9 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-[12px] shadow-card overflow-hidden">
+      <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[var(--clarity)] text-left text-[var(--muted-foreground)]">
+          <thead className="bg-[var(--muted)] text-left text-[var(--muted-foreground)]">
             <tr>
               <th className="px-4 py-3 font-medium">Category</th>
               <th className="px-4 py-3 font-medium">Title</th>
@@ -302,7 +302,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
               </tr>
             ) : (
               filtered.map((e) => (
-                <tr key={e.id} className="border-t border-[rgba(0,0,0,0.06)]">
+                <tr key={e.id} className="border-t border-[var(--border)]">
                   <td className="px-4 py-3">
                     <span className="bg-[var(--harmony-lite)] text-[var(--harmony)] text-[12px] font-medium px-2 py-0.5 rounded-full">
                       {e.category}
@@ -348,10 +348,10 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/40 flex justify-end" onClick={() => setShowForm(false)}>
           <div
-            className="w-full max-w-xl h-full bg-white shadow-elevated overflow-y-auto"
+            className="w-full max-w-xl h-full bg-[var(--card)] shadow-elevated overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white border-b border-[rgba(0,0,0,0.06)] px-6 py-4 flex items-center justify-between">
+            <div className="sticky top-0 bg-[var(--card)] border-b border-[var(--border)] px-6 py-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-[var(--harmony)]">
                 {form.id ? "Edit entry" : "New entry"}
               </h2>
@@ -367,7 +367,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-[8px] border border-[rgba(0,0,0,0.12)] bg-white"
+                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] bg-[var(--card)]"
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c}>{c}</option>
@@ -378,7 +378,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                 <input
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full px-3 py-2 rounded-[8px] border border-[rgba(0,0,0,0.12)]"
+                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)]"
                 />
               </Field>
               <Field label="Content">
@@ -386,7 +386,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                   rows={10}
                   value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
-                  className="w-full px-3 py-2 rounded-[8px] border border-[rgba(0,0,0,0.12)] resize-y leading-relaxed"
+                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] resize-y leading-relaxed"
                 />
               </Field>
               <div className="grid grid-cols-2 gap-4">
@@ -397,7 +397,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                     max={10}
                     value={form.week_number}
                     onChange={(e) => setForm({ ...form, week_number: e.target.value })}
-                    className="w-full px-3 py-2 rounded-[8px] border border-[rgba(0,0,0,0.12)]"
+                    className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)]"
                   />
                 </Field>
                 <Field label="Featured">
@@ -417,7 +417,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                   value={form.tagsInput}
                   onChange={(e) => setForm({ ...form, tagsInput: e.target.value })}
                   placeholder="e.g. discovery, healthcare, AI"
-                  className="w-full px-3 py-2 rounded-[8px] border border-[rgba(0,0,0,0.12)]"
+                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)]"
                 />
                 {form.tagsInput && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
