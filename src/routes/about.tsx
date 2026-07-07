@@ -95,7 +95,7 @@ function AboutPage() {
         {/* END LEFT CARD */}
 
         {/* RIGHT CARD — About This Agent */}
-        <div className="bg-white rounded-[12px] shadow-card p-6">
+        <div className="bg-[var(--card)] rounded-[12px] shadow-card p-6">
           <h2 className="text-xl font-semibold
             text-[var(--harmony)]">
             About This Agent
