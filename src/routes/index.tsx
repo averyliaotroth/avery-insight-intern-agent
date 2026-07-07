@@ -111,7 +111,7 @@ function ChatPage() {
         </p>
       </section>
 
-      <div className="bg-white rounded-[12px] shadow-card overflow-hidden flex flex-col">
+      <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden flex flex-col">
         <div ref={scrollRef} className="px-4 sm:px-6 py-5 space-y-4 max-h-[55vh] overflow-y-auto">
           {messages.map((m) =>
             m.role === "user" ? (
