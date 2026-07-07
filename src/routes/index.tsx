@@ -180,7 +180,7 @@ function ChatPage() {
             ))}
           </div>
 
-          <div className="flex items-end gap-2 bg-[var(--clarity)] rounded-full pl-5 pr-1.5 py-1.5 border border-[rgba(0,0,0,0.06)] focus-within:border-[var(--hunger)]">
+          <div className="flex items-end gap-2 bg-[var(--clarity)] rounded-full pl-5 pr-1.5 py-1.5 border border-[var(--border)] focus-within:border-[var(--hunger)]">
             <textarea
               ref={inputRef}
               rows={1}
