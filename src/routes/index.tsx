@@ -111,7 +111,7 @@ function ChatPage() {
         </p>
       </section>
 
-      <div className="bg-white rounded-[12px] shadow-card overflow-hidden flex flex-col">
+      <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden flex flex-col">
         <div ref={scrollRef} className="px-4 sm:px-6 py-5 space-y-4 max-h-[55vh] overflow-y-auto">
           {messages.map((m) =>
             m.role === "user" ? (
@@ -120,7 +120,7 @@ function ChatPage() {
                   <div className="bg-[var(--hunger)] text-white rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed">
                     {m.text}
                   </div>
-                  <div className="mt-1 text-[11px] text-[var(--muted-foreground)] text-right">
+                  <div className="mt-1 text-[11px] text-[var(--muted-foreground)] text-right" suppressHydrationWarning>
                     {formatTime(m.timestamp)}
                   </div>
                 </div>
@@ -132,8 +132,8 @@ function ChatPage() {
                 </div>
                 <div className="max-w-[85%]">
                   <div
-                    className={`rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed border border-[rgba(0,0,0,0.06)] text-[var(--neutral-ink)] whitespace-pre-wrap ${
-                      m.welcome ? "bg-[var(--harmony-lite)]" : "bg-white"
+                    className={`rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed border border-[var(--border)] text-[var(--neutral-ink)] whitespace-pre-wrap ${
+                      m.welcome ? "bg-[var(--harmony-lite)]" : "bg-[var(--card)]"
                     }`}
                   >
                     {m.text}
@@ -144,7 +144,7 @@ function ChatPage() {
                         {m.category}
                       </span>
                     )}
-                    <span className="text-[11px] text-[var(--muted-foreground)]">
+                    <span className="text-[11px] text-[var(--muted-foreground)]" suppressHydrationWarning>
                       {formatTime(m.timestamp)}
                     </span>
                   </div>
@@ -157,7 +157,7 @@ function ChatPage() {
               <div className="shrink-0 w-8 h-8 rounded-full bg-[var(--harmony)] text-white flex items-center justify-center text-sm font-semibold">
                 A
               </div>
-              <div className="bg-white border border-[rgba(0,0,0,0.06)] rounded-[12px] px-4 py-3 flex items-center gap-1.5">
+              <div className="bg-[var(--card)] border border-[var(--border)] rounded-[12px] px-4 py-3 flex items-center gap-1.5">
                 <span className="typing-dot inline-block w-2 h-2 rounded-full bg-[var(--hunger)]" />
                 <span className="typing-dot inline-block w-2 h-2 rounded-full bg-[var(--hunger)]" />
                 <span className="typing-dot inline-block w-2 h-2 rounded-full bg-[var(--hunger)]" />
@@ -166,21 +166,21 @@ function ChatPage() {
           )}
         </div>
 
-        <div className="border-t border-[rgba(0,0,0,0.06)] p-3 sm:p-4 space-y-3">
+        <div className="border-t border-[var(--border)] p-3 sm:p-4 space-y-3">
           <div className="flex gap-2 overflow-x-auto sm:flex-wrap sm:overflow-visible pb-1 -mx-1 px-1">
             {SUGGESTIONS.map((q) => (
               <button
                 key={q}
                 onClick={() => send(q)}
                 disabled={loading}
-                className="shrink-0 text-[13px] px-3 py-1.5 rounded-full border border-[var(--harmony)] text-[var(--harmony)] bg-white hover:bg-[var(--harmony)] hover:text-white disabled:opacity-50 transition-colors"
+                className="shrink-0 text-[13px] px-3 py-1.5 rounded-full border border-[var(--harmony)] text-[var(--harmony)] bg-[var(--card)] hover:bg-[var(--harmony)] hover:text-white disabled:opacity-50 transition-colors"
               >
                 {q}
               </button>
             ))}
           </div>
 
-          <div className="flex items-end gap-2 bg-[var(--clarity)] rounded-full pl-5 pr-1.5 py-1.5 border border-[rgba(0,0,0,0.06)] focus-within:border-[var(--hunger)]">
+          <div className="flex items-end gap-2 bg-[var(--clarity)] rounded-full pl-5 pr-1.5 py-1.5 border border-[var(--border)] focus-within:border-[var(--hunger)]">
             <textarea
               ref={inputRef}
               rows={1}
