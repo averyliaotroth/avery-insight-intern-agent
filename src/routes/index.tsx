@@ -120,7 +120,7 @@ function ChatPage() {
                   <div className="bg-[var(--hunger)] text-white rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed">
                     {m.text}
                   </div>
-                  <div className="mt-1 text-[11px] text-[var(--muted-foreground)] text-right">
+                  <div className="mt-1 text-[11px] text-[var(--muted-foreground)] text-right" suppressHydrationWarning>
                     {formatTime(m.timestamp)}
                   </div>
                 </div>
