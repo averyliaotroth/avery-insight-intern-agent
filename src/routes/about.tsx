@@ -71,7 +71,7 @@ function AboutPage() {
       <section className="grid md:grid-cols-2 gap-8 mt-12">
 
         {/* LEFT CARD — Photo */}
-        <div className="bg-white rounded-[12px] shadow-card p-6
+        <div className="bg-[var(--card)] rounded-[12px] shadow-card p-6
           flex flex-col items-center justify-center">
           <img
             src="https://raw.githubusercontent.com/averyliaotroth/avery-insight-intern-agent/main/public/avery-headshot.jpeg"
