@@ -132,8 +132,8 @@ function ChatPage() {
                 </div>
                 <div className="max-w-[85%]">
                   <div
-                    className={`rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed border border-[rgba(0,0,0,0.06)] text-[var(--neutral-ink)] whitespace-pre-wrap ${
-                      m.welcome ? "bg-[var(--harmony-lite)]" : "bg-white"
+                    className={`rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed border border-[var(--border)] text-[var(--neutral-ink)] whitespace-pre-wrap ${
+                      m.welcome ? "bg-[var(--harmony-lite)]" : "bg-[var(--card)]"
                     }`}
                   >
                     {m.text}
