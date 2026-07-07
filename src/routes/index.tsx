@@ -157,7 +157,7 @@ function ChatPage() {
               <div className="shrink-0 w-8 h-8 rounded-full bg-[var(--harmony)] text-white flex items-center justify-center text-sm font-semibold">
                 A
               </div>
-              <div className="bg-white border border-[rgba(0,0,0,0.06)] rounded-[12px] px-4 py-3 flex items-center gap-1.5">
+              <div className="bg-[var(--card)] border border-[var(--border)] rounded-[12px] px-4 py-3 flex items-center gap-1.5">
                 <span className="typing-dot inline-block w-2 h-2 rounded-full bg-[var(--hunger)]" />
                 <span className="typing-dot inline-block w-2 h-2 rounded-full bg-[var(--hunger)]" />
                 <span className="typing-dot inline-block w-2 h-2 rounded-full bg-[var(--hunger)]" />
