@@ -70,7 +70,7 @@ function AdminPage() {
               value={pwd}
               onChange={(e) => setPwd(e.target.value)}
               placeholder="Password"
-              className="mt-5 w-full px-4 py-2.5 rounded-[8px] border border-[var(--border)] outline-none focus:border-[var(--hunger)] bg-[var(--card)]"
+              className="mt-5 w-full px-4 py-2.5 rounded-[8px] border border-[var(--border)] outline-none focus:border-[var(--hunger)] bg-[var(--card)] text-[var(--foreground)]"
               autoFocus
             />
             <button
@@ -242,7 +242,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
           <select
             value={filterCat}
             onChange={(e) => setFilterCat(e.target.value)}
-            className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)]"
+            className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)]"
           >
             <option>All</option>
             {CATEGORIES.map((c) => (
@@ -255,7 +255,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
           <select
             value={filterWeek}
             onChange={(e) => setFilterWeek(e.target.value)}
-            className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)]"
+            className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)]"
           >
             <option>All</option>
             {Array.from({ length: 10 }, (_, i) => i + 1).map((w) => (
@@ -367,7 +367,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] bg-[var(--card)]"
+                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]"
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c}>{c}</option>
@@ -378,7 +378,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                 <input
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)]"
+                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]"
                 />
               </Field>
               <Field label="Content">
@@ -386,7 +386,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                   rows={10}
                   value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
-                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] resize-y leading-relaxed"
+                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] resize-y leading-relaxed bg-[var(--card)] text-[var(--foreground)]"
                 />
               </Field>
               <div className="grid grid-cols-2 gap-4">
@@ -397,7 +397,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                     max={10}
                     value={form.week_number}
                     onChange={(e) => setForm({ ...form, week_number: e.target.value })}
-                    className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)]"
+                    className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]"
                   />
                 </Field>
                 <Field label="Featured">
@@ -417,7 +417,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                   value={form.tagsInput}
                   onChange={(e) => setForm({ ...form, tagsInput: e.target.value })}
                   placeholder="e.g. discovery, healthcare, AI"
-                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)]"
+                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]"
                 />
                 {form.tagsInput && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
