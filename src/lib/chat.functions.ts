@@ -62,67 +62,87 @@ export const chatWithAgent = createServerFn({ method: "POST" })
       { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
     );
 
-    // Extract meaningful keywords from message
-const stopWords = new Set([
-  "what", "when", "where", "who", "how", "why",
-  "did", "does", "was", "were", "is", "are",
-  "the", "a", "an", "and", "or", "but",
-  "in", "on", "at", "to", "for", "of", "with",
-  "her", "his", "she", "he", "they", "it",
-  "this", "that", "about", "me", "my", "your",
-  "their", "have", "has", "had", "been", "tell",
-  "give", "show", "can", "could", "would", "should",
-  "during", "some", "any", "more", "also", "just",
-  "like", "than", "then", "from", "into", "over",
-]);
+    type Chunk = {
+      id: string;
+      category: string;
+      title: string;
+      content: string;
+      tags: string[] | null;
+      similarity?: number;
+    };
+    let chunks: Chunk[] = [];
 
-const keywords = data.message
-  .toLowerCase()
-  .replace(/[^a-z0-9\s]/g, " ")
-  .split(/\s+/)
-  .filter(w => w.length > 2 && !stopWords.has(w));
+    // Step 1 — Generate embedding for the user message
+    let embedding: number[] | null = null;
+    try {
+      embedding = await generateEmbedding(data.message);
+    } catch (err) {
+      console.warn(
+        "[Embedding] Failed to generate query embedding:",
+        err instanceof Error ? err.message : err,
+      );
+      embedding = null;
+    }
 
-// Build OR filter across all keywords
-let chunks: typeof matches extends null ? never[] : NonNullable<typeof matches> = [];
+    // Step 2 — Semantic search via pgvector RPC
+    if (embedding) {
+      const { data: semanticMatches, error: rpcError } = await supabaseRead.rpc(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        "match_knowledge_base" as any,
+        {
+          query_embedding: embedding as unknown as string,
+          match_threshold: 0.3,
+          match_count: 10,
+        },
+      );
+      if (rpcError) {
+        console.warn("[Semantic] RPC failed:", rpcError.message);
+      } else if (Array.isArray(semanticMatches)) {
+        chunks = semanticMatches as Chunk[];
+      }
+    }
 
-if (keywords.length > 0) {
-  const filters = keywords
-    .flatMap(kw => [
-      `title.ilike.%${kw}%`,
-      `content.ilike.%${kw}%`,
-      `tags.cs.{${kw}}`
-    ])
-    .join(",");
+    // Step 3 — Keyword fallback (permanent safety net)
+    if (chunks.length === 0) {
+      const stopWords = new Set([
+        "what","when","where","who","how","why",
+        "did","does","was","were","is","are",
+        "the","and","or","but",
+        "in","on","at","to","for","of","with",
+        "her","his","she","he","they","it",
+        "this","that","about","have","has","had","been","tell",
+        "give","show","can","could","would","should","during","some","any",
+        "more","also","just","like","than","then","from","into","over",
+      ]);
+      const keywords = data.message
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, " ")
+        .split(/\s+/)
+        .filter((w) => w.length >= 3 && !stopWords.has(w));
 
-  const { data: keywordMatches } = await supabaseRead
-    .from("knowledge_base")
-    .select("id,category,title,content,tags")
-    .or(filters)
-    .limit(15);
+      if (keywords.length > 0) {
+        const filters = keywords
+          .flatMap((kw) => [`title.ilike.%${kw}%`, `content.ilike.%${kw}%`])
+          .join(",");
+        const { data: keywordMatches } = await supabaseRead
+          .from("knowledge_base")
+          .select("id,category,title,content,tags")
+          .or(filters)
+          .limit(10);
+        chunks = (keywordMatches ?? []) as Chunk[];
+      }
+    }
 
-  chunks = keywordMatches ?? [];
-}
+    // Step 4 — Featured fallback
+    if (chunks.length === 0) {
+      const { data: featured } = await supabaseRead
+        .from("knowledge_base")
+        .select("id,category,title,content,tags")
+        .eq("is_featured", true)
+        .limit(8);
+      chunks = (featured ?? []) as Chunk[];
+    }
 
-// Fallback 1 — full message search
-if (chunks.length === 0) {
-  const q = data.message.replace(/[%_]/g, " ").slice(0, 200);
-  const { data: fullMatches } = await supabaseRead
-    .from("knowledge_base")
-    .select("id,category,title,content,tags")
-    .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
-    .limit(15);
-  chunks = fullMatches ?? [];
-}
-
-// Fallback 2 — featured entries
-if (chunks.length === 0) {
-  const { data: featured } = await supabaseRead
-    .from("knowledge_base")
-    .select("id,category,title,content,tags")
-    .eq("is_featured", true)
-    .limit(10);
-  chunks = featured ?? [];
-}
 
 
     const contextText = chunks.length
