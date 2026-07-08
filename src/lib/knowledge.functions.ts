@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+import { generateEmbedding } from "@/lib/embeddings";
+
 
 const ADMIN_PASSWORD = "insight2026";
 
