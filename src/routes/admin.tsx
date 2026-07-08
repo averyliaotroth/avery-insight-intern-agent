@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Pencil, Trash2, Plus, X, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { listEntries, upsertEntry, deleteEntry } from "@/lib/knowledge.functions";
+import { backfillEmbeddings, countMissingEmbeddings } from "@/lib/backfill";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Avery Liao-Troth" }] }),
