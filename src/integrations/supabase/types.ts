@@ -46,6 +46,7 @@ export type Database = {
           category: string
           content: string
           created_at: string
+          embedding: string | null
           id: string
           is_featured: boolean
           tags: string[] | null
@@ -57,6 +58,7 @@ export type Database = {
           category: string
           content: string
           created_at?: string
+          embedding?: string | null
           id?: string
           is_featured?: boolean
           tags?: string[] | null
@@ -68,6 +70,7 @@ export type Database = {
           category?: string
           content?: string
           created_at?: string
+          embedding?: string | null
           id?: string
           is_featured?: boolean
           tags?: string[] | null

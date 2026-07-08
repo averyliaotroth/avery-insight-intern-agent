@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Pencil, Trash2, Plus, X, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { listEntries, upsertEntry, deleteEntry } from "@/lib/knowledge.functions";
+import { backfillEmbeddings, countMissingEmbeddings } from "@/lib/backfill";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Avery Liao-Troth" }] }),
@@ -113,6 +115,8 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const list = useServerFn(listEntries);
   const upsert = useServerFn(upsertEntry);
   const del = useServerFn(deleteEntry);
+  const backfill = useServerFn(backfillEmbeddings);
+  const countMissing = useServerFn(countMissingEmbeddings);
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,12 +125,20 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [missingCount, setMissingCount] = useState(0);
+  const [backfilling, setBackfilling] = useState(false);
 
   async function refresh() {
     setLoading(true);
     try {
       const data = await list({ data: {} });
       setEntries(data as Entry[]);
+      try {
+        const c = await countMissing();
+        setMissingCount(c.count);
+      } catch {
+        // non-fatal
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -138,6 +150,24 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function runBackfill() {
+    setBackfilling(true);
+    try {
+      const res = await backfill();
+      if (res.failed > 0) {
+        toast.success(`${res.processed} succeeded, ${res.failed} failed`);
+      } else {
+        toast.success(`Generated embeddings for ${res.processed} entries`);
+      }
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Backfill failed");
+    } finally {
+      setBackfilling(false);
+    }
+  }
+
 
   const filtered = useMemo(
     () =>
@@ -221,12 +251,25 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {missingCount > 0 && (
+            <button
+              onClick={runBackfill}
+              disabled={backfilling}
+              className="text-sm px-4 py-2 rounded-[8px] border border-[var(--harmony)] text-[var(--harmony)] bg-transparent hover:bg-[var(--harmony-lite)] inline-flex items-center gap-2 disabled:opacity-60"
+            >
+              {backfilling ? (
+                <span className="w-4 h-4 border-2 border-[var(--harmony)]/40 border-t-[var(--harmony)] rounded-full animate-spin" />
+              ) : null}
+              {backfilling ? "Generating…" : `Generate Embeddings (${missingCount})`}
+            </button>
+          )}
           <button
             onClick={openNew}
             className="bg-[var(--hunger)] hover:bg-[var(--heart)] text-white px-4 py-2 rounded-[8px] text-sm font-medium inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" /> Add New Entry
           </button>
+
           <button
             onClick={onLogout}
             className="text-sm text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)] px-3 py-2"

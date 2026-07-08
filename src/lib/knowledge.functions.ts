@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+import { generateEmbedding } from "@/lib/embeddings";
+
 
 const ADMIN_PASSWORD = "insight2026";
 
@@ -94,15 +96,42 @@ export const upsertEntry = createServerFn({ method: "POST" })
       tags: data.tags ?? null,
       is_featured: data.is_featured ?? false,
     };
+    let entryId = data.id;
     if (data.id) {
       const { error } = await supabaseAdmin.from("knowledge_base").update(row).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await supabaseAdmin.from("knowledge_base").insert(row);
+      const { data: inserted, error } = await supabaseAdmin
+        .from("knowledge_base")
+        .insert(row)
+        .select("id")
+        .single();
       if (error) throw new Error(error.message);
+      entryId = inserted?.id;
     }
+
+    // Generate + persist embedding. Never fails the save.
+    if (entryId) {
+      try {
+        const combined = `${data.category} ${data.title} ${data.content}`;
+        const embedding = await generateEmbedding(combined);
+        const { error: embErr } = await supabaseAdmin
+          .from("knowledge_base")
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .update({ embedding: embedding as any })
+          .eq("id", entryId);
+        if (embErr) console.warn("[Embedding] Failed to persist:", embErr.message);
+      } catch (err) {
+        console.warn(
+          "[Embedding] Failed to generate for entry:",
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+
     return { ok: true };
   });
+
 
 export const deleteEntry = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => DeleteInput.parse(d))
