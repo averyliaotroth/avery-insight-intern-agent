@@ -60,23 +60,68 @@ export const chatWithAgent = createServerFn({ method: "POST" })
       { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
     );
 
-    // Retrieve top relevant knowledge chunks
-    const q = data.message.replace(/[%_]/g, " ").slice(0, 200);
-    const { data: matches } = await supabaseRead
-      .from("knowledge_base")
-      .select("id,category,title,content,tags")
-      .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
-      .limit(5);
+    // Extract meaningful keywords from message
+const stopWords = new Set([
+  "what", "when", "where", "who", "how", "why",
+  "did", "does", "was", "were", "is", "are",
+  "the", "a", "an", "and", "or", "but",
+  "in", "on", "at", "to", "for", "of", "with",
+  "her", "his", "she", "he", "they", "it",
+  "this", "that", "about", "me", "my", "your",
+  "their", "have", "has", "had", "been", "tell",
+  "give", "show", "can", "could", "would", "should",
+  "during", "some", "any", "more", "also", "just",
+  "like", "than", "then", "from", "into", "over",
+]);
 
-    let chunks = matches ?? [];
-    if (chunks.length === 0) {
-      const { data: featured } = await supabaseRead
-        .from("knowledge_base")
-        .select("id,category,title,content,tags")
-        .eq("is_featured", true)
-        .limit(5);
-      chunks = featured ?? [];
-    }
+const keywords = data.message
+  .toLowerCase()
+  .replace(/[^a-z0-9\s]/g, " ")
+  .split(/\s+/)
+  .filter(w => w.length > 2 && !stopWords.has(w));
+
+// Build OR filter across all keywords
+let chunks: typeof matches extends null ? never[] : NonNullable<typeof matches> = [];
+
+if (keywords.length > 0) {
+  const filters = keywords
+    .flatMap(kw => [
+      `title.ilike.%${kw}%`,
+      `content.ilike.%${kw}%`,
+      `tags.cs.{${kw}}`
+    ])
+    .join(",");
+
+  const { data: keywordMatches } = await supabaseRead
+    .from("knowledge_base")
+    .select("id,category,title,content,tags")
+    .or(filters)
+    .limit(15);
+
+  chunks = keywordMatches ?? [];
+}
+
+// Fallback 1 — full message search
+if (chunks.length === 0) {
+  const q = data.message.replace(/[%_]/g, " ").slice(0, 200);
+  const { data: fullMatches } = await supabaseRead
+    .from("knowledge_base")
+    .select("id,category,title,content,tags")
+    .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+    .limit(15);
+  chunks = fullMatches ?? [];
+}
+
+// Fallback 2 — featured entries
+if (chunks.length === 0) {
+  const { data: featured } = await supabaseRead
+    .from("knowledge_base")
+    .select("id,category,title,content,tags")
+    .eq("is_featured", true)
+    .limit(10);
+  chunks = featured ?? [];
+}
+
 
     const contextText = chunks.length
       ? chunks
