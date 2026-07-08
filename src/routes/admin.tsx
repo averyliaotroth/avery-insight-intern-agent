@@ -115,6 +115,8 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const list = useServerFn(listEntries);
   const upsert = useServerFn(upsertEntry);
   const del = useServerFn(deleteEntry);
+  const backfill = useServerFn(backfillEmbeddings);
+  const countMissing = useServerFn(countMissingEmbeddings);
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,12 +125,20 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [missingCount, setMissingCount] = useState(0);
+  const [backfilling, setBackfilling] = useState(false);
 
   async function refresh() {
     setLoading(true);
     try {
       const data = await list({ data: {} });
       setEntries(data as Entry[]);
+      try {
+        const c = await countMissing();
+        setMissingCount(c.count);
+      } catch {
+        // non-fatal
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -140,6 +150,24 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function runBackfill() {
+    setBackfilling(true);
+    try {
+      const res = await backfill();
+      if (res.failed > 0) {
+        toast.success(`${res.processed} succeeded, ${res.failed} failed`);
+      } else {
+        toast.success(`Generated embeddings for ${res.processed} entries`);
+      }
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Backfill failed");
+    } finally {
+      setBackfilling(false);
+    }
+  }
+
 
   const filtered = useMemo(
     () =>
