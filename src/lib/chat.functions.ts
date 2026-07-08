@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { generateEmbedding } from "@/lib/embeddings";
+
 
 const ChatInput = z.object({
   message: z.string().min(1).max(2000),
