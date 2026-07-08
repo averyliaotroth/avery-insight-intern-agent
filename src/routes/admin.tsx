@@ -251,12 +251,25 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {missingCount > 0 && (
+            <button
+              onClick={runBackfill}
+              disabled={backfilling}
+              className="text-sm px-4 py-2 rounded-[8px] border border-[var(--harmony)] text-[var(--harmony)] bg-transparent hover:bg-[var(--harmony-lite)] inline-flex items-center gap-2 disabled:opacity-60"
+            >
+              {backfilling ? (
+                <span className="w-4 h-4 border-2 border-[var(--harmony)]/40 border-t-[var(--harmony)] rounded-full animate-spin" />
+              ) : null}
+              {backfilling ? "Generating…" : `Generate Embeddings (${missingCount})`}
+            </button>
+          )}
           <button
             onClick={openNew}
             className="bg-[var(--hunger)] hover:bg-[var(--heart)] text-white px-4 py-2 rounded-[8px] text-sm font-medium inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" /> Add New Entry
           </button>
+
           <button
             onClick={onLogout}
             className="text-sm text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)] px-3 py-2"
