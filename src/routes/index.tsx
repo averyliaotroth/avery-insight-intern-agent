@@ -50,6 +50,7 @@ function ChatPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
+  const [shownQuestions, setShownQuestions] = useState<Set<string>>(new Set());
   function toggleSources(id: string) {
     setExpandedSources(prev => {
       const next = new Set(prev);
@@ -70,6 +71,18 @@ function ChatPage() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    messages.forEach(m => {
+      if (m.followUpQuestions && m.followUpQuestions.length > 0) {
+        setShownQuestions(prev => {
+          const next = new Set(prev);
+          m.followUpQuestions!.forEach(q => next.add(q));
+          return next;
+        });
+      }
+    });
+  }, [messages]);
 
   async function send(text: string) {
     const message = text.trim();
@@ -256,7 +269,7 @@ function ChatPage() {
                       m.followUpQuestions &&
                       m.followUpQuestions.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          {m.followUpQuestions.map((q, i) => (
+                          {m.followUpQuestions.filter(q => !shownQuestions.has(q)).map((q, i) => (
                             <button
                               key={i}
                               onClick={() => send(q)}
