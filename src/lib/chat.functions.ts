@@ -157,7 +157,7 @@ export const chatWithAgent = createServerFn({ method: "POST" })
       "match_knowledge_base" as any,
       {
         query_embedding: replyEmbedding as unknown as string,
-        match_threshold: 0.3,
+        match_threshold: 0.55,
         match_count: 10,
       },
     );
@@ -165,7 +165,7 @@ export const chatWithAgent = createServerFn({ method: "POST" })
       const usedTitles = new Set(chunks.map(c => c.title));
       const candidates = (relatedMatches as Chunk[])
         .filter(c => !usedTitles.has(c.title))
-        .slice(0, 5)
+        .slice(0, 3)
         .map(c => c.title);
   
       if (candidates.length > 0) {
