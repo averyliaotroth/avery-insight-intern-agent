@@ -203,7 +203,15 @@ export const chatWithAgent = createServerFn({ method: "POST" })
       console.warn("[ConversationLog] Failed to log:", err instanceof Error ? err.message : err);
     }
 
-    return { reply, categoryTag, chunksUsed: chunks.length };
+    return {
+      reply,
+      categoryTag,
+      chunksUsed: chunks.length,
+      sources: chunks.map(c => ({
+        category: c.category,
+        title: c.title,
+      })),
+    };
   });
 
 
