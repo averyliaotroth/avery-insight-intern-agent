@@ -148,75 +148,79 @@ export const chatWithAgent = createServerFn({ method: "POST" })
       chunks = (featured ?? []) as Chunk[];
     }
 
-    let followUpQuestions: string[] = [];
-  try {
-    const replyEmbedding = await generateEmbedding(
-      chunks.map(c => c.title).join(" ")
-    );
-    const { data: relatedMatches } = await supabaseRead.rpc(
-      "match_knowledge_base" as any,
-      {
-        query_embedding: replyEmbedding as unknown as string,
-        match_threshold: 0.65,
-        match_count: 10,
-      },
-    );
-    if (Array.isArray(relatedMatches)) {
-      const usedTitles = new Set(chunks.map(c => c.title));
-      const candidates = (relatedMatches as Chunk[])
-        .filter(c => !usedTitles.has(c.title) && (c.content?.length ?? 0) > 300)
-        .slice(0, 3)
-        .map(c => c.title);
-  
-      if (candidates.length > 0) {
-        const qRes = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [
-              {
-                role: "system",
-                content: `You are helping generate follow-up questions for an AI portfolio agent about Avery Liao-Troth's internship at Insight Enterprises.
+  // follow-up question suggestions from random unvisited KB entries
+let followUpQuestions: string[] = [];
+try {
+  const usedTitles = new Set([
+    ...chunks.map(c => c.title),
+    ...(data.history ?? [])
+      .filter(h => h.role === "user")
+      .map(h => h.content),
+  ]);
 
-                  Convert each knowledge base entry title into a natural follow-up question. Rules:
-                  - Each question must be under 10 words
-                  - Questions must be answerable from the title alone — do not reference specific company names, people, or projects unless they appear exactly in the title
-                  - Use she/her/hers pronouns only — never "you" or "your"
-                  - Use general language: "How did she..." "What did she learn..." "What was her approach to..."
-                  - Only ask about what is explicitly stated in the title — do not infer, expand, or reference anything not in the title itself
-                  - If a title is too vague or ambiguous to form a safe question, skip it and return one fewer question
-                  - Return only a JSON array of strings, one per title
-                  - No explanation, no extra text`,
-              },
-              {
-                role: "user",
-                content: JSON.stringify(candidates),
-              },
-            ],
-            max_tokens: 150,
-            temperature: 0.4,
-          }),
-        });
-        if (qRes.ok) {
-          const qPayload = await qRes.json();
-          const raw = qPayload.choices?.[0]?.message?.content ?? "[]";
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            followUpQuestions = parsed.slice(0, 3);
-          }
+  const { data: allEntries } = await supabaseRead
+    .from("knowledge_base")
+    .select("title,content")
+    .gt("content", "")
+    .order("is_featured", { ascending: false });
+
+  if (Array.isArray(allEntries)) {
+    const candidates = (allEntries as { title: string; content: string }[])
+      .filter(c =>
+        !usedTitles.has(c.title) &&
+        (c.content?.length ?? 0) > 150
+      )
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3)
+      .map(c => c.title);
+
+    if (candidates.length > 0) {
+      const qRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are helping generate follow-up questions for an AI portfolio agent about Avery Liao-Troth's internship at Insight Enterprises.
+
+Convert each knowledge base entry title into a natural follow-up question. Rules:
+- Each question must be under 10 words
+- Use she/her/hers pronouns only — never "you" or "your"
+- Use general language: "How did she..." "What did she learn..." "What was her approach to..."
+- Only ask about what is explicitly stated in the title — do not infer, expand, or reference anything not in the title itself
+- If a title is too vague or ambiguous to form a safe question, skip it and return one fewer question
+Return only a JSON array of strings, one per title. No explanation.`,
+            },
+            {
+              role: "user",
+              content: JSON.stringify(candidates),
+            },
+          ],
+          max_tokens: 150,
+          temperature: 0.4,
+        }),
+      });
+      if (qRes.ok) {
+        const qPayload = await qRes.json();
+        const raw = qPayload.choices?.[0]?.message?.content ?? "[]";
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          followUpQuestions = parsed.slice(0, 3);
         }
       }
     }
-  } catch (err) {
-    console.warn(
-      "[FollowUp] Failed to generate follow-up questions:",
-      err instanceof Error ? err.message : err,
-    );
   }
+} catch (err) {
+  console.warn(
+    "[FollowUp] Failed to generate follow-up questions:",
+    err instanceof Error ? err.message : err,
+  );
+}
 
     const contextText = chunks.length
       ? chunks
