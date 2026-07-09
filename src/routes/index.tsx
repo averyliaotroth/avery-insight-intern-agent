@@ -85,10 +85,11 @@ function ChatPage() {
     animatingIdRef.current = id;
     animatingTextRef.current = fullText;
     setTypedLen(0);
-    const cps = 20;
+    const cps = 30;
+    const charsPerTick = 2;
     intervalRef.current = setInterval(() => {
       setTypedLen((prev) => {
-        const next = prev + 1;
+        const next = prev + charsPerTick;
         if (next >= fullText.length) {
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
