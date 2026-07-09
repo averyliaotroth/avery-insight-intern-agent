@@ -260,6 +260,10 @@ function ChatPage() {
                 </div>
               </div>
             ) : (
+              (() => {
+                const isAnimating = animatingIdRef.current === m.id;
+                const displayText = isAnimating ? m.text.slice(0, typedLen) : m.text;
+                return (
               <div key={m.id} className="flex gap-3">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-[var(--harmony)] text-white flex items-center justify-center text-sm font-semibold">
                   A
@@ -270,8 +274,12 @@ function ChatPage() {
                       m.welcome ? "bg-[var(--harmony-lite)]" : "bg-[var(--card)]"
                     }`}
                   >
-                    {m.text}
+                    {displayText}
                   </div>
+                  {!isAnimating && (
+                  <>
+                  </>
+                  )}
                   <div className="mt-1 flex items-center gap-2">
                     {m.category && (
                       <span
