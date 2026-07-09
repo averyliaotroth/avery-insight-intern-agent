@@ -113,7 +113,28 @@ function ChatPage() {
           I'm an AI agent trained on Avery's real work, research, and reflections
           from her Account Executive Internship at Insight.
         </p>
+        {messages.length > 1 && (
+          <button
+            onClick={() => {
+              const text = messages
+                .filter(m => !m.welcome)
+                .map(m => 
+                  `${m.role === "user" ? "You" : "Avery's Agent"}: ${m.text}`
+                )
+                .join("\n\n");
+              navigator.clipboard.writeText(text);
+              toast.success("Conversation copied to clipboard");
+            }}
+            className="mt-3 text-[12px] px-3 py-1.5 rounded-full border 
+              border-[var(--harmony)] text-[var(--harmony)] 
+              bg-[var(--card)] hover:bg-[var(--harmony)] 
+              hover:text-white transition-colors"
+          >
+            Copy conversation
+          </button>
+        )}
       </section>
+
 
       <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden flex flex-col">
         <div ref={scrollRef} className="px-4 sm:px-6 py-5 space-y-4 max-h-[55vh] overflow-y-auto">
