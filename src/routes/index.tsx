@@ -190,7 +190,7 @@ function ChatPage() {
   const charCount = input.length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 sm:px-6 pt-8 pb-32 sm:pb-8">
+    <div className="mx-auto max-w-3xl px-2 min-[380px]:px-4 sm:px-6 pt-8 pb-32 sm:pb-8">
       <section className="text-center mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--harmony)]">
           Ask me anything about my internship at Insight
@@ -200,7 +200,7 @@ function ChatPage() {
           from her Account Executive Internship at Insight.
         </p>
         {messages.length > 1 && (
-          <div className="mt-3 flex items-center justify-center gap-2">
+          <div className="mt-3 flex flex-col min-[400px]:flex-row items-stretch min-[400px]:items-center justify-center gap-2">
             <button
               onClick={() => {
                 const text = messages
@@ -248,7 +248,8 @@ function ChatPage() {
           {messages.map((m) =>
             m.role === "user" ? (
               <div key={m.id} className="flex justify-end">
-                <div className="max-w-[80%]">
+                <div className="max-w-[95%] sm:max-w-[80%]">
+
                   <div className="bg-[var(--hunger)] text-white rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed">
                     {m.text}
                   </div>
@@ -268,7 +269,7 @@ function ChatPage() {
                 <div className="shrink-0 w-8 h-8 rounded-full bg-[var(--harmony)] text-white flex items-center justify-center text-sm font-semibold">
                   A
                 </div>
-                <div className="max-w-[85%]">
+                <div className="max-w-[95%] sm:max-w-[85%] min-w-0">
                   <div
                     className={`rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed border border-[var(--border)] text-[var(--neutral-ink)] whitespace-pre-wrap ${
                       m.welcome ? "bg-[var(--harmony-lite)]" : "bg-[var(--card)]"
@@ -276,7 +277,7 @@ function ChatPage() {
                   >
                     {displayText}
                   </div>
-                  <div className="mt-1 flex items-center gap-2">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                     {!isAnimating && m.category && (
                       <span
                         className={`${categoryPillClass(m.category)} text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap`}
