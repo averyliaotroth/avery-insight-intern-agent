@@ -20,6 +20,7 @@ type Message = {
   welcome?: boolean;
   chunksUsed?: number;
   sources?: { category: string; title: string }[];
+  followUpQuestions?: string[];
 };
 
 const SUGGESTIONS = [
@@ -110,6 +111,7 @@ function ChatPage() {
           timestamp: new Date(),
           chunksUsed: res.chunksUsed,
           sources: res.sources ?? [],
+          followUpQuestions: res.followUpQuestions ?? [],
         },
       ]);
     } catch (e) {
@@ -250,6 +252,26 @@ function ChatPage() {
                         )}
                       </div>
                     )}
+                    {!m.welcome &&
+                      m.followUpQuestions &&
+                      m.followUpQuestions.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {m.followUpQuestions.map((q, i) => (
+                            <button
+                              key={i}
+                              onClick={() => send(q)}
+                              disabled={loading}
+                              className="text-[12px] px-3 py-1.5 rounded-full border 
+                                         border-[var(--harmony)] text-[var(--harmony)] 
+                                         bg-[var(--card)] hover:bg-[var(--harmony)] 
+                                         hover:text-white disabled:opacity-50 
+                                         transition-colors text-left"
+                            >
+                              {q}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     <span
                       className="text-[11px] text-[var(--muted-foreground)]"
                       suppressHydrationWarning
