@@ -84,18 +84,6 @@ export function exportChatAsPDF(messages: ExportMessage[]): void {
           gap: 4px;
         }
 
-        .insight-wordmark {
-          font-size: 22px;
-          font-weight: 700;
-          color: #582873;
-          letter-spacing: -0.5px;
-          margin-bottom: 8px;
-        }
-
-        .insight-wordmark span {
-          color: #D30E8C;
-        }
-
         .name {
           font-size: 20px;
           font-weight: 700;
@@ -228,7 +216,11 @@ export function exportChatAsPDF(messages: ExportMessage[]): void {
     <body>
       <div class="header">
         <div class="header-left">
-          <div class="insight-wordmark">insight<span>.</span></div>
+          <img 
+            src="https://www.insight.com/content/dam/insight-web/en_US/images/insightdotcom/logos/insight-logo.svg" 
+            alt="Insight" 
+            style="height: 32px; width: auto; display: block; margin-bottom: 8px;"
+          />
           <div class="name">Avery Liao-Troth</div>
           <div class="role">Account Executive Intern</div>
           <div class="company">Insight Enterprises &middot; 2026</div>
@@ -260,5 +252,5 @@ export function exportChatAsPDF(messages: ExportMessage[]): void {
   win.focus();
   setTimeout(() => {
     win.print();
-  }, 500);
+  }, 1000);
 }
