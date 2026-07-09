@@ -32,7 +32,7 @@ const CAPSTONES: { title: string; desc: string }[] = [
     desc: "How Insight was positioned to help, and where my work moved the needle.",
   },
   {
-    title: "Tools, Technology, & AI",
+    title: "Tools, Tech, & AI",
     desc: "The tools and AI I used to work smarter and support the account team.",
   },
   {
