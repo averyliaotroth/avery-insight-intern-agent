@@ -5,6 +5,7 @@ import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { chatWithAgent } from "@/lib/chat.functions";
 import { categoryPillClass } from "@/lib/categoryColors";
+import { exportChatAsText } from "@/lib/exportChat";
 
 export const Route = createFileRoute("/")({
   component: ChatPage,
@@ -130,24 +131,45 @@ function ChatPage() {
           from her Account Executive Internship at Insight.
         </p>
         {messages.length > 1 && (
-          <button
-            onClick={() => {
-              const text = messages
-                .filter(m => !m.welcome)
-                .map(m => 
-                  `${m.role === "user" ? "You" : "Avery's Agent"}: ${m.text}`
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <button
+              onClick={() => {
+                const text = messages
+                  .filter(m => !m.welcome)
+                  .map(m =>
+                    `${m.role === "user" ? "You" : "Avery's Agent"}: ${m.text}`
+                  )
+                  .join("\n\n");
+                navigator.clipboard.writeText(text);
+                toast.success("Conversation copied to clipboard");
+              }}
+              className="text-[12px] px-3 py-1.5 rounded-full border 
+                border-[var(--harmony)] text-[var(--harmony)] 
+                bg-[var(--card)] hover:bg-[var(--harmony)] 
+                hover:text-white transition-colors"
+            >
+              Copy conversation
+            </button>
+        
+            <button
+              onClick={() =>
+                exportChatAsText(
+                  messages
+                    .filter(m => !m.welcome)
+                    .map(m => ({
+                      role: m.role === "user" ? "user" : "assistant",
+                      content: m.text,
+                    }))
                 )
-                .join("\n\n");
-              navigator.clipboard.writeText(text);
-              toast.success("Conversation copied to clipboard");
-            }}
-            className="mt-3 text-[12px] px-3 py-1.5 rounded-full border 
-              border-[var(--harmony)] text-[var(--harmony)] 
-              bg-[var(--card)] hover:bg-[var(--harmony)] 
-              hover:text-white transition-colors"
-          >
-            Copy conversation
-          </button>
+              }
+              className="text-[12px] px-3 py-1.5 rounded-full border 
+                border-[var(--harmony)] text-[var(--harmony)] 
+                bg-[var(--card)] hover:bg-[var(--harmony)] 
+                hover:text-white transition-colors"
+            >
+              Export chat
+            </button>
+          </div>
         )}
       </section>
 
