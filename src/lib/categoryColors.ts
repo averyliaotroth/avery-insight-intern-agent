@@ -7,7 +7,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
     "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300",
   "Sales Thinking & Impact":
     "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
-  "Tools, Technology, & AI":
+  "Tools, Tech, & AI":
     "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300",
   "Outcomes & Future State":
     "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900 dark:text-fuchsia-300",
