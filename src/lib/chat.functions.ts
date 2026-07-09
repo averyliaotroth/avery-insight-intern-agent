@@ -157,14 +157,14 @@ export const chatWithAgent = createServerFn({ method: "POST" })
       "match_knowledge_base" as any,
       {
         query_embedding: replyEmbedding as unknown as string,
-        match_threshold: 0.55,
+        match_threshold: 0.65,
         match_count: 10,
       },
     );
     if (Array.isArray(relatedMatches)) {
       const usedTitles = new Set(chunks.map(c => c.title));
       const candidates = (relatedMatches as Chunk[])
-        .filter(c => !usedTitles.has(c.title))
+        .filter(c => !usedTitles.has(c.title) && (c.content?.length ?? 0) > 300)
         .slice(0, 3)
         .map(c => c.title);
   
