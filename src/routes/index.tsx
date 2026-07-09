@@ -259,11 +259,10 @@ function ChatPage() {
                   </div>
                 </div>
               </div>
-            ) : (
-              (() => {
-                const isAnimating = animatingIdRef.current === m.id;
-                const displayText = isAnimating ? m.text.slice(0, typedLen) : m.text;
-                return (
+            ) : (() => {
+              const isAnimating = animatingIdRef.current === m.id;
+              const displayText = isAnimating ? m.text.slice(0, typedLen) : m.text;
+              return (
               <div key={m.id} className="flex gap-3">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-[var(--harmony)] text-white flex items-center justify-center text-sm font-semibold">
                   A
@@ -276,19 +275,15 @@ function ChatPage() {
                   >
                     {displayText}
                   </div>
-                  {!isAnimating && (
-                  <>
-                  </>
-                  )}
                   <div className="mt-1 flex items-center gap-2">
-                    {m.category && (
+                    {!isAnimating && m.category && (
                       <span
                         className={`${categoryPillClass(m.category)} text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap`}
                       >
                         {m.category}
                       </span>
                     )}
-                    {m.chunksUsed !== undefined && m.chunksUsed > 0 && (
+                    {!isAnimating && m.chunksUsed !== undefined && m.chunksUsed > 0 && (
                       <div className="mt-1">
                         <button
                           onClick={() => toggleSources(m.id)}
@@ -316,7 +311,7 @@ function ChatPage() {
                         )}
                       </div>
                     )}
-                    {!m.welcome &&
+                    {!isAnimating && !m.welcome &&
                       m.followUpQuestions &&
                       m.followUpQuestions.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -346,7 +341,8 @@ function ChatPage() {
 
                 </div>
               </div>
-            ),
+              );
+            })(),
           )}
           {loading && (
             <div className="flex gap-3">
