@@ -16,14 +16,31 @@ const CATEGORIES = [
   "Account Overview",
   "My Role",
   "Key Experiences",
-  "Sales Thinking & Impact",
-  "Tools & AI",
-  "Outcomes & Future State",
-  "Growth & Learnings",
+  "Strategic Thinking and Business Impact",
+  "Tools, Technology and AI",
+  "Outcomes and Future State",
+  "Growth and Learnings",
   "Looking Forward",
   "Research",
   "This Agent",
 ] as const;
+
+const CATEGORY_COLORS: Record<string, string> = {
+  "Account Overview": "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+  "My Role": "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
+  "Key Experiences": "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300",
+  "Strategic Thinking and Business Impact": "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
+  "Tools, Technology and AI": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300",
+  "Outcomes and Future State": "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  "Growth and Learnings": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
+  "Looking Forward": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300",
+  "Research": "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300",
+  "This Agent": "bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300",
+};
+
+function categoryPillClass(category: string): string {
+  return CATEGORY_COLORS[category] ?? "bg-[var(--harmony-lite)] text-[var(--harmony)]";
+}
 
 type Entry = {
   id: string;
@@ -346,8 +363,8 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
             ) : (
               filtered.map((e) => (
                 <tr key={e.id} className="border-t border-[var(--border)]">
-                  <td className="px-4 py-3">
-                    <span className="bg-[var(--harmony-lite)] text-[var(--harmony)] text-[12px] font-medium px-2 py-0.5 rounded-full truncate max-w-[120px] block">
+                  <td className="px-4 py-3 min-w-[120px]">
+                    <span className={`${categoryPillClass(e.category)} text-[12px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap inline-block`}>
                       {e.category}
                     </span>
                   </td>
