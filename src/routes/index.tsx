@@ -19,6 +19,7 @@ type Message = {
   timestamp: Date;
   welcome?: boolean;
   chunksUsed?: number;
+  sources?: { category: string; title: string }[];
 };
 
 const SUGGESTIONS = [
@@ -33,7 +34,7 @@ const SUGGESTIONS = [
 const WELCOME: Message = {
   id: "welcome",
   role: "agent",
-  text: "Hi! I'm a full-stack AI agent built by Avery Liao-Troth as her capstone project during her Account Executive Internship at Insight. She conceptualized, designed, and deployed me to explore AI product development firsthand, from defining requirements and architecting a solution to building, iterating, and shipping a working product. Ask me about her experience, her process, or what she learned along the way.",
+  text: "Hi! I'm an AI agent built by Avery Liao-Troth as her capstone project during her Account Executive Internship at Insight. She conceptualized, designed, and deployed me to explore AI product development firsthand, from defining requirements and architecting a solution to building, iterating, and shipping a working product. Ask me about her experience, her process, or what she learned along the way.",
   timestamp: new Date(),
   welcome: true,
 };
@@ -47,6 +48,14 @@ function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
+  function toggleSources(id: string) {
+    setExpandedSources(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
   const sessionIdRef = useRef<string>(
     typeof crypto !== "undefined" ? crypto.randomUUID() : `s-${Date.now()}`,
   );
@@ -100,6 +109,7 @@ function ChatPage() {
           category: res.chunksUsed > 0 ? res.categoryTag : null,
           timestamp: new Date(),
           chunksUsed: res.chunksUsed,
+          sources: res.sources ?? [],
         },
       ]);
     } catch (e) {
@@ -213,9 +223,32 @@ function ChatPage() {
                       </span>
                     )}
                     {m.chunksUsed !== undefined && m.chunksUsed > 0 && (
-                      <span className="text-[10px] text-[var(--muted-foreground)] italic">
-                        {m.chunksUsed} source{m.chunksUsed !== 1 ? "s" : ""} retrieved
-                      </span>
+                      <div className="mt-1">
+                        <button
+                          onClick={() => toggleSources(m.id)}
+                          className="text-[10px] text-[var(--muted-foreground)] italic 
+                                     hover:text-[var(--harmony)] transition-colors flex 
+                                     items-center gap-1"
+                        >
+                          {m.chunksUsed} source{m.chunksUsed !== 1 ? "s" : ""} retrieved
+                          <span>{expandedSources.has(m.id) ? "▲" : "▼"}</span>
+                        </button>
+                    
+                        {expandedSources.has(m.id) && m.sources && m.sources.length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {m.sources.map((source, i) => (
+                              <span
+                                key={i}
+                                className={`${categoryPillClass(source.category)} text-[10px] 
+                                            font-medium px-2 py-0.5 rounded-full uppercase 
+                                            tracking-wide whitespace-nowrap`}
+                              >
+                                {source.title}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     )}
                     <span
                       className="text-[11px] text-[var(--muted-foreground)]"
