@@ -277,7 +277,7 @@ function ChatPage() {
                   >
                     {displayText}
                   </div>
-                  <div className="mt-1 flex items-center gap-2">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                     {!isAnimating && m.category && (
                       <span
                         className={`${categoryPillClass(m.category)} text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap`}
