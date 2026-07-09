@@ -175,44 +175,16 @@ try {
       .map(c => c.title);
 
     if (candidates.length > 0) {
-      const qRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are helping generate follow-up questions for an AI portfolio agent about Avery Liao-Troth's internship at Insight Enterprises.
-
-Convert each knowledge base entry title into a natural follow-up question. Rules:
-- Each question must be under 10 words
-- Use she/her/hers pronouns only — never "you" or "your"
-- Use general language: "How did she..." "What did she learn..." "What was her approach to..."
-- Only ask about what is explicitly stated in the title — do not infer, expand, or reference anything not in the title itself
-- If a title is too vague or ambiguous to form a safe question, skip it and return one fewer question
-Return only a JSON array of strings, one per title. No explanation.`,
-            },
-            {
-              role: "user",
-              content: JSON.stringify(candidates),
-            },
-          ],
-          max_tokens: 150,
-          temperature: 0.4,
-        }),
+      followUpQuestions = candidates.map(title => {
+        const t = title.trim();
+        const lower = t.toLowerCase();
+        if (lower.startsWith("how")) return t.endsWith("?") ? t : `${t}?`;
+        if (lower.startsWith("what")) return t.endsWith("?") ? t : `${t}?`;
+        if (lower.startsWith("why")) return t.endsWith("?") ? t : `${t}?`;
+        if (lower.startsWith("when")) return t.endsWith("?") ? t : `${t}?`;
+        if (lower.startsWith("where")) return t.endsWith("?") ? t : `${t}?`;
+        return `Tell me about ${t.toLowerCase().replace(/\.$/, "")}.`;
       });
-      if (qRes.ok) {
-        const qPayload = await qRes.json();
-        const raw = qPayload.choices?.[0]?.message?.content ?? "[]";
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          followUpQuestions = parsed.slice(0, 3);
-        }
-      }
     }
   }
 } catch (err) {
