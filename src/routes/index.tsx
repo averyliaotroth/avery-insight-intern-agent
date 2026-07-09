@@ -269,7 +269,7 @@ function ChatPage() {
                       m.followUpQuestions &&
                       m.followUpQuestions.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          {m.followUpQuestions.filter(q => !shownQuestions.has(q)).map((q, i) => (
+                          {m.followUpQuestions.map((q, i) => (
                             <button
                               key={i}
                               onClick={() => send(q)}
