@@ -6,6 +6,10 @@ import { generateEmbedding } from "@/lib/embeddings";
 const ChatInput = z.object({
   message: z.string().min(1).max(2000),
   sessionId: z.string(),
+  history: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+  })).optional(),
 });
 
 const SYSTEM_PROMPT = `You are an AI portfolio agent representing Avery Liao-Troth, an Account Executive Intern at Insight Enterprises in the 2026 Account Executive Internship program. You are both a conversational portfolio artifact and a demonstration of Avery's ability to design, architect, and ship a full-stack AI product from scratch.
@@ -168,6 +172,7 @@ export const chatWithAgent = createServerFn({ method: "POST" })
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
+          ...(data.history ?? []),
           { role: "user", content: userPrompt },
         ],
         max_tokens: 600,
