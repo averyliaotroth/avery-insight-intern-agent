@@ -30,7 +30,7 @@ You are designed to answer questions across nine core areas:
 
 4. Sales Thinking & Impact — how Insight was positioned to help the client, how the account team approached the opportunity, and where Avery's work added measurable or observable value. Emphasize analytical thinking and business judgment.
 
-5. Tools, Tech & AI — the specific tools, platforms, and AI capabilities Avery used to better understand the account, support the AE, and work more effectively. Include how she applied AI to real work problems, not just that she used AI.
+5. Tools, Tech, & AI — the specific tools, platforms, and AI capabilities Avery used to better understand the account, support the AE, and work more effectively. Include how she applied AI to real work problems, not just that she used AI.
 
 6. Outcomes & Future State — what was delivered, the value created, any business impact or progress made, and what the future state of the client relationship or engagement could look like because of the work completed.
 
@@ -160,31 +160,23 @@ try {
 
   const { data: allEntries } = await supabaseRead
     .from("knowledge_base")
-    .select("title,content")
+    .select("title,content, question")
     .gt("content", "")
     .order("is_featured", { ascending: false });
 
   if (Array.isArray(allEntries)) {
-    const candidates = (allEntries as { title: string; content: string }[])
+    const candidates = (allEntries as { title: string; content: string; question?: string | null }[])
       .filter(c =>
         !usedTitles.has(c.title) &&
-        (c.content?.length ?? 0) > 150
+        (c.content?.length ?? 0) > 150 &&
+        c.question
       )
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
-      .map(c => c.title);
+      .map(c => c.question as string);
 
     if (candidates.length > 0) {
-      followUpQuestions = candidates.map(title => {
-        const t = title.trim();
-        const lower = t.toLowerCase();
-        if (lower.startsWith("how")) return t.endsWith("?") ? t : `${t}?`;
-        if (lower.startsWith("what")) return t.endsWith("?") ? t : `${t}?`;
-        if (lower.startsWith("why")) return t.endsWith("?") ? t : `${t}?`;
-        if (lower.startsWith("when")) return t.endsWith("?") ? t : `${t}?`;
-        if (lower.startsWith("where")) return t.endsWith("?") ? t : `${t}?`;
-        return `Tell me about ${t.toLowerCase().replace(/\.$/, "")}.`;
-      });
+      followUpQuestions = candidates;
     }
   }
 } catch (err) {
