@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { chatWithAgent } from "@/lib/chat.functions";
+import { categoryPillClass } from "@/lib/categoryColors";
 
 export const Route = createFileRoute("/")({
   component: ChatPage,
@@ -107,7 +108,8 @@ function ChatPage() {
           Ask me anything about my internship at Insight
         </h1>
         <p className="mt-3 text-[var(--muted-foreground)] max-w-2xl mx-auto text-[15px]">
-          I'm an AI agent trained on Avery's real work, research, and reflections from her Account Executive Internship at Insight.
+          I'm an AI agent trained on Avery's real work, research, and reflections
+          from her Account Executive Internship at Insight.
         </p>
       </section>
 
@@ -120,7 +122,10 @@ function ChatPage() {
                   <div className="bg-[var(--hunger)] text-white rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed">
                     {m.text}
                   </div>
-                  <div className="mt-1 text-[11px] text-[var(--muted-foreground)] text-right" suppressHydrationWarning>
+                  <div
+                    className="mt-1 text-[11px] text-[var(--muted-foreground)] text-right"
+                    suppressHydrationWarning
+                  >
                     {formatTime(m.timestamp)}
                   </div>
                 </div>
@@ -140,11 +145,16 @@ function ChatPage() {
                   </div>
                   <div className="mt-1 flex items-center gap-2">
                     {m.category && (
-                      <span className="bg-[var(--vision)] text-white text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wide">
+                      <span
+                        className={`${categoryPillClass(m.category)} text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap`}
+                      >
                         {m.category}
                       </span>
                     )}
-                    <span className="text-[11px] text-[var(--muted-foreground)]" suppressHydrationWarning>
+                    <span
+                      className="text-[11px] text-[var(--muted-foreground)]"
+                      suppressHydrationWarning
+                    >
                       {formatTime(m.timestamp)}
                     </span>
                   </div>
