@@ -183,9 +183,7 @@ function AboutPage() {
           <p className="mt-3 text-[15px] leading-relaxed
             text-[var(--neutral-ink)]">
             Avery lives and works at the intersection of
-            people, technology, design, and business. That
-            Venn diagram is not a compromise. It is
-            the point.
+            people, technology, design, and business.
           </p>
         </div>
       </section>
