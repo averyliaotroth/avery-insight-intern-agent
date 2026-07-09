@@ -64,13 +64,53 @@ function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const animatingIdRef = useRef<string | null>(null);
+  const animatingTextRef = useRef<string>("");
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [typedLen, setTypedLen] = useState(0);
+
+  function finishAnimation() {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (animatingIdRef.current) {
+      animatingIdRef.current = null;
+      setTypedLen(animatingTextRef.current.length);
+    }
+  }
+
+  function startTypewriter(id: string, fullText: string) {
+    finishAnimation();
+    animatingIdRef.current = id;
+    animatingTextRef.current = fullText;
+    setTypedLen(0);
+    const cps = 20;
+    intervalRef.current = setInterval(() => {
+      setTypedLen((prev) => {
+        const next = prev + 1;
+        if (next >= fullText.length) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          animatingIdRef.current = null;
+          return fullText.length;
+        }
+        return next;
+      });
+    }, 1000 / cps);
+  }
+
+  useEffect(() => () => finishAnimation(), []);
+
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, typedLen]);
 
   useEffect(() => {
     messages.forEach(m => {
@@ -87,6 +127,7 @@ function ChatPage() {
   async function send(text: string) {
     const message = text.trim();
     if (!message || loading) return;
+    finishAnimation();
     const userMsg: Message = {
       id: `u-${Date.now()}`,
       role: "user",
@@ -114,10 +155,11 @@ function ChatPage() {
           history,
         } 
       });
+      const agentId = `a-${Date.now()}`;
       setMessages((m) => [
         ...m,
         {
-          id: `a-${Date.now()}`,
+          id: agentId,
           role: "agent",
           text: res.reply,
           category: res.chunksUsed > 0 ? res.categoryTag : null,
@@ -127,6 +169,7 @@ function ChatPage() {
           followUpQuestions: res.followUpQuestions ?? [],
         },
       ]);
+      startTypewriter(agentId, res.reply);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong.";
       toast.error(msg);
@@ -216,7 +259,10 @@ function ChatPage() {
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : (() => {
+              const isAnimating = animatingIdRef.current === m.id;
+              const displayText = isAnimating ? m.text.slice(0, typedLen) : m.text;
+              return (
               <div key={m.id} className="flex gap-3">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-[var(--harmony)] text-white flex items-center justify-center text-sm font-semibold">
                   A
@@ -227,17 +273,17 @@ function ChatPage() {
                       m.welcome ? "bg-[var(--harmony-lite)]" : "bg-[var(--card)]"
                     }`}
                   >
-                    {m.text}
+                    {displayText}
                   </div>
                   <div className="mt-1 flex items-center gap-2">
-                    {m.category && (
+                    {!isAnimating && m.category && (
                       <span
                         className={`${categoryPillClass(m.category)} text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap`}
                       >
                         {m.category}
                       </span>
                     )}
-                    {m.chunksUsed !== undefined && m.chunksUsed > 0 && (
+                    {!isAnimating && m.chunksUsed !== undefined && m.chunksUsed > 0 && (
                       <div className="mt-1">
                         <button
                           onClick={() => toggleSources(m.id)}
@@ -265,7 +311,7 @@ function ChatPage() {
                         )}
                       </div>
                     )}
-                    {!m.welcome &&
+                    {!isAnimating && !m.welcome &&
                       m.followUpQuestions &&
                       m.followUpQuestions.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -295,7 +341,8 @@ function ChatPage() {
 
                 </div>
               </div>
-            ),
+              );
+            })(),
           )}
           {loading && (
             <div className="flex gap-3">
