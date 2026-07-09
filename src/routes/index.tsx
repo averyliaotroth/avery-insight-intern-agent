@@ -64,13 +64,53 @@ function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const animatingIdRef = useRef<string | null>(null);
+  const animatingTextRef = useRef<string>("");
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [typedLen, setTypedLen] = useState(0);
+
+  function finishAnimation() {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (animatingIdRef.current) {
+      animatingIdRef.current = null;
+      setTypedLen(animatingTextRef.current.length);
+    }
+  }
+
+  function startTypewriter(id: string, fullText: string) {
+    finishAnimation();
+    animatingIdRef.current = id;
+    animatingTextRef.current = fullText;
+    setTypedLen(0);
+    const cps = 20;
+    intervalRef.current = setInterval(() => {
+      setTypedLen((prev) => {
+        const next = prev + 1;
+        if (next >= fullText.length) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          animatingIdRef.current = null;
+          return fullText.length;
+        }
+        return next;
+      });
+    }, 1000 / cps);
+  }
+
+  useEffect(() => () => finishAnimation(), []);
+
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, typedLen]);
 
   useEffect(() => {
     messages.forEach(m => {
