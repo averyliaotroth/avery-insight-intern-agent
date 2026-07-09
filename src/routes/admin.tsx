@@ -31,7 +31,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Key Experiences": "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300",
   "Strategic Thinking & Business Impact": "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
   "Tools, Technology, & AI": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300",
-  "Outcomes and Future State": "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  "Outcomes & Future State": "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
   "Growth & Learnings": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
   "Looking Forward": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300",
   "Research": "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300",
@@ -363,7 +363,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
             ) : (
               filtered.map((e) => (
                 <tr key={e.id} className="border-t border-[var(--border)]">
-                  <td className="px-4 py-3 min-w-[120px]">
+                  <td className="px-4 py-3 w-[220px]">
                     <span className={`${categoryPillClass(e.category)} text-[12px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap inline-block`}>
                       {e.category}
                     </span>
