@@ -5,7 +5,7 @@ import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { chatWithAgent } from "@/lib/chat.functions";
 import { categoryPillClass } from "@/lib/categoryColors";
-import { exportChatAsText } from "@/lib/exportChat";
+import { exportChatAsPDF } from "@/lib/exportChat";
 
 export const Route = createFileRoute("/")({
   component: ChatPage,
@@ -153,7 +153,7 @@ function ChatPage() {
         
             <button
               onClick={() =>
-                exportChatAsText(
+                exportChatAsPDF(
                   messages
                     .filter(m => !m.welcome)
                     .map(m => ({
@@ -167,7 +167,7 @@ function ChatPage() {
                 bg-[var(--card)] hover:bg-[var(--harmony)] 
                 hover:text-white transition-colors"
             >
-              Export chat
+              Export PDF
             </button>
           </div>
         )}
