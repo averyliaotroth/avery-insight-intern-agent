@@ -15,7 +15,7 @@ const CATEGORIES = [
   "Account Overview",
   "My Role",
   "Key Experiences",
-  "Sales Thinking & Business Impact",
+  "Sales Thinking & Impact",
   "Tools, Technology, & AI",
   "Outcomes & Future State",
   "Growth & Learnings",
@@ -31,7 +31,7 @@ const CATEGORY_COLORS: Record<string, string> = {
     "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300",
   "Key Experiences":
     "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300",
-  "Sales Thinking & Business Impact":
+  "Sales Thinking & Impact":
     "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
   "Tools, Technology, & AI":
     "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300",
