@@ -148,11 +148,11 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const del = useServerFn(deleteEntry);
   const backfill = useServerFn(backfillEmbeddings);
   const countMissing = useServerFn(countMissingEmbeddings);
-
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState<string>("All");
   const [filterWeek, setFilterWeek] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
@@ -199,15 +199,20 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     }
   }
 
-  const filtered = useMemo(
-    () =>
-      entries.filter(
-        (e) =>
-          (filterCat === "All" || e.category === filterCat) &&
-          (filterWeek === "All" || String(e.week_number ?? "") === filterWeek),
-      ),
-    [entries, filterCat, filterWeek],
-  );
+  const filtered = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    return entries.filter(
+      (e) =>
+        (filterCat === "All" || e.category === filterCat) &&
+        (filterWeek === "All" || String(e.week_number ?? "") === filterWeek) &&
+        (!q ||
+          e.title.toLowerCase().includes(q) ||
+          e.content.toLowerCase().includes(q) ||
+          e.category.toLowerCase().includes(q) ||
+          (e.tags ?? []).some((t) => t.toLowerCase().includes(q))),
+    );
+  }, [entries, filterCat, filterWeek, searchQuery]);
+
 
   function openNew() {
     setForm(emptyForm());
@@ -335,6 +340,28 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
               <option key={w}>{w}</option>
             ))}
           </select>
+        </div>
+        <div className="relative flex-1 min-w-[200px]">
+          <input
+            type="text"
+            placeholder="Search title, content, category, or tag..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-3 py-1.5 rounded-[8px] border border-[var(--border)] 
+                       text-sm bg-[var(--card)] text-[var(--foreground)] 
+                       placeholder:text-[var(--muted-foreground)]
+                       focus:outline-none focus:border-[var(--hunger)]"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 
+                         text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)]"
+              aria-label="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
         <div className="ml-auto text-xs text-[var(--muted-foreground)]">
           {filtered.length} of {entries.length} entries
