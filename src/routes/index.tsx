@@ -127,6 +127,7 @@ function ChatPage() {
   async function send(text: string) {
     const message = text.trim();
     if (!message || loading) return;
+    finishAnimation();
     const userMsg: Message = {
       id: `u-${Date.now()}`,
       role: "user",
