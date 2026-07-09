@@ -72,6 +72,7 @@ export const chatWithAgent = createServerFn({ method: "POST" })
       title: string;
       content: string;
       tags: string[] | null;
+      question?: string | null;
       similarity?: number;
     };
     let chunks: Chunk[] = [];
@@ -130,7 +131,7 @@ export const chatWithAgent = createServerFn({ method: "POST" })
           .join(",");
         const { data: keywordMatches } = await supabaseRead
           .from("knowledge_base")
-          .select("id,category,title,content,tags")
+          .select("id,category,title,content,tags,question")
           .or(filters)
           .limit(10);
         chunks = (keywordMatches ?? []) as Chunk[];
@@ -141,13 +142,74 @@ export const chatWithAgent = createServerFn({ method: "POST" })
     if (chunks.length === 0) {
       const { data: featured } = await supabaseRead
         .from("knowledge_base")
-        .select("id,category,title,content,tags")
+        .select("id,category,title,content,tags,question")
         .eq("is_featured", true)
         .limit(8);
       chunks = (featured ?? []) as Chunk[];
     }
 
-
+    let followUpQuestions: string[] = [];
+  try {
+    const replyEmbedding = await generateEmbedding(
+      chunks.map(c => c.title).join(" ")
+    );
+    const { data: relatedMatches } = await supabaseRead.rpc(
+      "match_knowledge_base" as any,
+      {
+        query_embedding: replyEmbedding as unknown as string,
+        match_threshold: 0.3,
+        match_count: 10,
+      },
+    );
+    if (Array.isArray(relatedMatches)) {
+      const usedTitles = new Set(chunks.map(c => c.title));
+      const candidates = (relatedMatches as Chunk[])
+        .filter(c => !usedTitles.has(c.title))
+        .slice(0, 5)
+        .map(c => c.title);
+  
+      if (candidates.length > 0) {
+        const qRes = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: `Convert each knowledge base entry title into a natural, 
+  conversational follow-up question a recruiter might ask about 
+  Avery Liao-Troth's internship. Each question must be under 10 words. 
+  Return only a JSON array of strings, one per title. No explanation.`,
+              },
+              {
+                role: "user",
+                content: JSON.stringify(candidates),
+              },
+            ],
+            max_tokens: 150,
+            temperature: 0.4,
+          }),
+        });
+        if (qRes.ok) {
+          const qPayload = await qRes.json();
+          const raw = qPayload.choices?.[0]?.message?.content ?? "[]";
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            followUpQuestions = parsed.slice(0, 3);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(
+      "[FollowUp] Failed to generate follow-up questions:",
+      err instanceof Error ? err.message : err,
+    );
+  }
 
     const contextText = chunks.length
       ? chunks
@@ -211,6 +273,7 @@ export const chatWithAgent = createServerFn({ method: "POST" })
         category: c.category,
         title: c.title,
       })),
+      followUpQuestions,
     };
   });
 
