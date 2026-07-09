@@ -155,10 +155,11 @@ function ChatPage() {
           history,
         } 
       });
+      const agentId = `a-${Date.now()}`;
       setMessages((m) => [
         ...m,
         {
-          id: `a-${Date.now()}`,
+          id: agentId,
           role: "agent",
           text: res.reply,
           category: res.chunksUsed > 0 ? res.categoryTag : null,
@@ -168,6 +169,7 @@ function ChatPage() {
           followUpQuestions: res.followUpQuestions ?? [],
         },
       ]);
+      startTypewriter(agentId, res.reply);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong.";
       toast.error(msg);
