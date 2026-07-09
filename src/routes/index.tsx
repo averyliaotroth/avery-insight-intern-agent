@@ -17,6 +17,7 @@ type Message = {
   category?: string | null;
   timestamp: Date;
   welcome?: boolean;
+  chunksUsed?: number;
 };
 
 const SUGGESTIONS = [
@@ -81,6 +82,7 @@ function ChatPage() {
           text: res.reply,
           category: res.chunksUsed > 0 ? res.categoryTag : null,
           timestamp: new Date(),
+          chunksUsed: res.chunksUsed,  // ← add this
         },
       ]);
     } catch (e) {
@@ -151,13 +153,19 @@ function ChatPage() {
                         {m.category}
                       </span>
                     )}
+                    {m.chunksUsed !== undefined && m.chunksUsed > 0 && (
+                      <span className="text-[10px] text-[var(--muted-foreground)] italic">
+                        {m.chunksUsed} source{m.chunksUsed !== 1 ? "s" : ""} retrieved
+                      </span>
+                    )}
                     <span
                       className="text-[11px] text-[var(--muted-foreground)]"
                       suppressHydrationWarning
                     >
                       {formatTime(m.timestamp)}
                     </span>
-                  </div>
+                </div>
+
                 </div>
               </div>
             ),
