@@ -28,7 +28,7 @@ const CAPSTONES: { title: string; desc: string }[] = [
     desc: "The most meaningful projects, calls, and relationships that shaped my internship.",
   },
   {
-    title: "Sales Thinking & Account Impact",
+    title: "Sales Thinking & Impact",
     desc: "How Insight was positioned to help, and where my work moved the needle.",
   },
   {
