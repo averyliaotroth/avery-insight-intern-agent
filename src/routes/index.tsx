@@ -73,7 +73,23 @@ function ChatPage() {
     setInput("");
     setLoading(true);
     try {
-      const res = await chat({ data: { message, sessionId: sessionIdRef.current } });
+      const history = messages
+        .filter(m => !m.welcome)
+        .slice(-6)
+        .map(m => ({
+          role: m.role === "user" 
+            ? "user" as const 
+            : "assistant" as const,
+          content: m.text,
+        }));
+      
+      const res = await chat({ 
+        data: { 
+          message, 
+          sessionId: sessionIdRef.current,
+          history,
+        } 
+      });
       setMessages((m) => [
         ...m,
         {
@@ -82,7 +98,7 @@ function ChatPage() {
           text: res.reply,
           category: res.chunksUsed > 0 ? res.categoryTag : null,
           timestamp: new Date(),
-          chunksUsed: res.chunksUsed,  // ← add this
+          chunksUsed: res.chunksUsed,
         },
       ]);
     } catch (e) {
