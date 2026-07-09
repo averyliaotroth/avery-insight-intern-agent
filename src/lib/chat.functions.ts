@@ -180,10 +180,17 @@ export const chatWithAgent = createServerFn({ method: "POST" })
             messages: [
               {
                 role: "system",
-                content: `Convert each knowledge base entry title into a natural, 
-  conversational follow-up question a recruiter might ask about 
-  Avery Liao-Troth's internship. Each question must be under 10 words. 
-  Return only a JSON array of strings, one per title. No explanation.`,
+                content: `You are helping generate follow-up questions for an AI portfolio agent about Avery Liao-Troth's internship at Insight Enterprises.
+
+                  Convert each knowledge base entry title into a natural follow-up question. Rules:
+                  - Each question must be under 10 words
+                  - Questions must be answerable from the title alone — do not reference specific company names, people, or projects unless they appear exactly in the title
+                  - Use she/her/hers pronouns only — never "you" or "your"
+                  - Use general language: "How did she..." "What did she learn..." "What was her approach to..."
+                  - Only ask about what is explicitly stated in the title — do not infer, expand, or reference anything not in the title itself
+                  - If a title is too vague or ambiguous to form a safe question, skip it and return one fewer question
+                  - Return only a JSON array of strings, one per title
+                  - No explanation, no extra text`,
               },
               {
                 role: "user",
