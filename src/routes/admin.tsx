@@ -42,7 +42,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Looking Forward":
     "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
   "Research":
-    "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300",
+    "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300",
   "This Agent":
     "bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300",
 };
