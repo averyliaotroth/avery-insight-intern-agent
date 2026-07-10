@@ -36,14 +36,16 @@ export function AboutAgent() {
                     What is it?
                   </p>
                   <p>
-                    This is a full-stack AI portfolio agent built by Avery
-                    Liao-Troth as her capstone project during her Account
-                    Executive Internship at Insight Enterprises. It is designed
-                    to answer questions about her internship experience through
-                    natural conversation.
+                    This is an AI portfolio agent built by Avery Liao-Troth as her
+                    capstone project during her 2026 Account Executive Internship at
+                    Insight Enterprises. Avery owned the product end to end, defining
+                    the use case, selecting the architecture, curating a knowledge base
+                    of over 100 entries from her real internship experience, and making
+                    every feature and design decision from concept through deployment.
+                    The agent runs on a RAG pipeline she configured using OpenAI,
+                    Supabase pgvector, and Lovable as her development environment.
                   </p>
                 </div>
-
                 <div>
                   <p className="font-semibold text-[var(--harmony)] mb-1">
                     What is RAG?
