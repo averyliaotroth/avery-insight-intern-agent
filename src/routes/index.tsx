@@ -217,7 +217,7 @@ function ChatPage() {
   const charCount = input.length;
 
   return (
-    <div className="mx-auto max-w-3xl px-2 min-[380px]:px-4 sm:px-6 pt-8 pb-32 sm:pb-8">
+    <div className="mx-auto max-w-5xl px-2 min-[380px]:px-4 sm:px-6 pt-8 pb-32 sm:pb-8">
       <section className="text-center mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--harmony)]">
           Ask me anything about my internship at Insight
