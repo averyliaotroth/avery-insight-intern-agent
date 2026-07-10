@@ -67,6 +67,12 @@ function ChatPage() {
       .slice(0, 6)
   );
 
+  const [welcomeText] = useState(() => {
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? "Good morning!" : hour < 17 ? "Good afternoon!" : "Good evening!";
+    return `${greeting} I'm an AI agent built by Avery Liao-Troth as her capstone project during her Account Executive Internship at Insight. She conceptualized, designed, and deployed me to explore AI product development firsthand, from defining requirements and architecting a solution to building, iterating, and shipping a working product. Ask me about her experience, her process, or what she learned along the way.`;
+  });
+
   function toggleSources(id: string) {
     setExpandedSources(prev => {
       const next = new Set(prev);
@@ -295,7 +301,8 @@ function ChatPage() {
               </div>
             ) : (() => {
               const isAnimating = animatingIdRef.current === m.id;
-              const displayText = isAnimating ? m.text.slice(0, typedLen) : m.text;
+              const text = m.welcome ? welcomeText : m.text;
+              const displayText = isAnimating ? text.slice(0, typedLen) : text;
               return (
               <div key={m.id} className="flex gap-3">
                 <img
@@ -383,7 +390,7 @@ function ChatPage() {
                     </span>
                     {m.responseTime !== undefined && !m.welcome && (
                       <span className="text-[10px] text-[var(--muted-foreground)] opacity-60">
-                        {m.responseTime.toFixed(1)}seconds
+                        {m.responseTime.toFixed(1)} seconds
                       </span>
                     )}
                 </div>
