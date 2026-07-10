@@ -19,7 +19,7 @@ type Message = {
   timestamp: Date;
   welcome?: boolean;
   chunksUsed?: number;
-  sources?: { category: string; title: string }[];
+  sources?: { category: string; title: string; similarity?: number }[];
   followUpQuestions?: string[];
 };
 
@@ -322,6 +322,11 @@ function ChatPage() {
                                             tracking-wide whitespace-nowrap`}
                               >
                                 {source.title}
+                                {source.similarity !== undefined && (
+                                  <span className="ml-1 opacity-60">
+                                    {Math.round(source.similarity * 100)}%
+                                  </span>
+                                )}
                               </span>
                             ))}
                           </div>
