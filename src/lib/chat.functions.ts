@@ -247,6 +247,7 @@ try {
       sources: chunks.map(c => ({
         category: c.category,
         title: c.title,
+        similarity: c.similarity,
       })),
       followUpQuestions,
     };
