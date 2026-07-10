@@ -317,7 +317,7 @@ function ChatPage() {
                         {m.category}
                       </span>
                     )}
-                    {!isAnimating && m.chunksUsed !== undefined && m.chunksUsed > 0 && (
+                    {!isAnimating && m.chunksUsed !== undefined && m.chunksUsed > 0 && !m.text.includes("I don't have specific information") && (
                       <div className="mt-1">
                         <button
                           onClick={() => toggleSources(m.id)}
