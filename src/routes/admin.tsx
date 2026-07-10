@@ -3,8 +3,25 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Pencil, Trash2, Plus, X, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@supabase/supabase-js";
 import { listEntries, upsertEntry, deleteEntry } from "@/lib/knowledge.functions";
 import { backfillEmbeddings, countMissingEmbeddings } from "@/lib/backfill";
+
+const analyticsSupabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
+
+type AnalyticsRow = {
+  id: string;
+  session_id: string | null;
+  user_message: string | null;
+  knowledge_chunks_used: string[] | null;
+  created_at: string;
+  agent_response: string | null;
+};
+
+type DateRange = "7d" | "30d" | "All";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Avery Liao-Troth" }] }),
