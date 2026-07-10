@@ -206,8 +206,6 @@ function ChatPage() {
         },
       ]);
       startTypewriter(agentId, res.reply);
-     
-      console.log("[Similarity]", res.sources?.map(s => s.similarity));
 
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong.";
