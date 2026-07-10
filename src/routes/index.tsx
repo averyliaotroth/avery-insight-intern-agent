@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { chatWithAgent } from "@/lib/chat.functions";
 import { categoryPillClass } from "@/lib/categoryColors";
 import { exportChatAsPDF } from "@/lib/exportChat";
+import { AboutAgent } from "@/components/AboutAgent";
+
 
 export const Route = createFileRoute("/")({
   component: ChatPage,
@@ -235,6 +237,9 @@ function ChatPage() {
           I'm an AI agent trained on Avery's real work, research, and reflections
           from her Account Executive Internship at Insight.
         </p>
+        <div className="mt-3 flex justify-center">
+          <AboutAgent />
+        </div>
         {messages.length > 1 && (
           <div className="mt-3 flex flex-col min-[400px]:flex-row items-stretch min-[400px]:items-center justify-center gap-2">
             <button
