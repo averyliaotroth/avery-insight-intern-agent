@@ -3,8 +3,25 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Pencil, Trash2, Plus, X, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@supabase/supabase-js";
 import { listEntries, upsertEntry, deleteEntry } from "@/lib/knowledge.functions";
 import { backfillEmbeddings, countMissingEmbeddings } from "@/lib/backfill";
+
+const analyticsSupabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+);
+
+type AnalyticsRow = {
+  id: string;
+  session_id: string | null;
+  user_message: string | null;
+  knowledge_chunks_used: string[] | null;
+  created_at: string;
+  agent_response: string | null;
+};
+
+type DateRange = "7d" | "30d" | "All";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Avery Liao-Troth" }] }),
@@ -160,6 +177,9 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [saving, setSaving] = useState(false);
   const [missingCount, setMissingCount] = useState(0);
   const [backfilling, setBackfilling] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsRow[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRange>("30d");
 
   async function refresh() {
     setLoading(true);
@@ -179,10 +199,102 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     }
   }
 
+  async function loadAnalytics() {
+    setAnalyticsLoading(true);
+    try {
+      const { data, error } = await analyticsSupabase
+        .from("conversation_logs")
+        .select("id, session_id, user_message, knowledge_chunks_used, created_at, agent_response");
+      if (!error && data) setAnalyticsData(data as AnalyticsRow[]);
+    } catch {
+      // silent
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }
+
   useEffect(() => {
     refresh();
+    loadAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const filteredAnalytics = useMemo(() => {
+    if (dateRange === "All") return analyticsData;
+    const days = dateRange === "7d" ? 7 : 30;
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    return analyticsData.filter((r) => new Date(r.created_at).getTime() >= cutoff);
+  }, [analyticsData, dateRange]);
+
+  const stats = useMemo(() => {
+    const sessions = new Set<string>();
+    filteredAnalytics.forEach((r) => {
+      if (r.session_id) sessions.add(r.session_id);
+    });
+    const totalMessages = filteredAnalytics.length;
+
+    const catCounts = new Map<string, number>();
+    const chunkCounts = new Map<string, number>();
+    filteredAnalytics.forEach((r) => {
+      (r.knowledge_chunks_used ?? []).forEach((s) => {
+        if (!s) return;
+        chunkCounts.set(s, (chunkCounts.get(s) ?? 0) + 1);
+        const cat = s.split(": ")[0];
+        if (cat) catCounts.set(cat, (catCounts.get(cat) ?? 0) + 1);
+      });
+    });
+    let topCat = "—";
+    let topCatN = 0;
+    catCounts.forEach((n, k) => {
+      if (n > topCatN) {
+        topCatN = n;
+        topCat = k;
+      }
+    });
+
+    const respLens = filteredAnalytics
+      .map((r) => (r.agent_response ?? "").length)
+      .filter((n) => n > 0);
+    const avgLen = respLens.length
+      ? Math.round(respLens.reduce((a, b) => a + b, 0) / respLens.length)
+      : 0;
+
+    const topChunks = Array.from(chunkCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const qCounts = new Map<string, number>();
+    filteredAnalytics.forEach((r) => {
+      const q = (r.user_message ?? "").trim();
+      if (q) qCounts.set(q, (qCounts.get(q) ?? 0) + 1);
+    });
+    const topQuestions = Array.from(qCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const dayCounts = new Map<string, Set<string>>();
+    filteredAnalytics.forEach((r) => {
+      const day = r.created_at.slice(0, 10);
+      if (!dayCounts.has(day)) dayCounts.set(day, new Set());
+      if (r.session_id) dayCounts.get(day)!.add(r.session_id);
+    });
+    const days = Array.from(dayCounts.entries())
+      .map(([d, s]) => ({ day: d, count: s.size }))
+      .sort((a, b) => a.day.localeCompare(b.day));
+
+    return {
+      totalConversations: sessions.size,
+      totalMessages,
+      topCategory: topCat,
+      avgLen,
+      topChunks,
+      topQuestions,
+      days,
+    };
+  }, [filteredAnalytics]);
+
+  const maxDay = Math.max(1, ...stats.days.map((d) => d.count));
+
 
   async function runBackfill() {
     setBackfilling(true);
@@ -283,6 +395,109 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-[var(--harmony)]">Analytics</h2>
+          <div className="flex gap-2">
+            {(["7d", "30d", "All"] as DateRange[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => setDateRange(r)}
+                className={
+                  dateRange === r
+                    ? "bg-[var(--harmony)] text-white rounded-full px-3 py-1 text-xs"
+                    : "border border-[var(--harmony)] text-[var(--harmony)] bg-transparent rounded-full px-3 py-1 text-xs"
+                }
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {[
+            { n: stats.totalConversations, l: "Total Conversations" },
+            { n: stats.totalMessages, l: "Total Messages" },
+            { n: stats.topCategory, l: "Most Asked Topic" },
+            { n: `${stats.avgLen} chars`, l: "Avg Response Length" },
+          ].map((c) => (
+            <div key={c.l} className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
+              <div className="text-2xl font-bold text-[var(--harmony)]">
+                {analyticsLoading ? "..." : c.n}
+              </div>
+              <div className="text-xs text-[var(--muted-foreground)] mt-1">{c.l}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4 mb-4">
+          <div className="text-xs font-medium text-[var(--muted-foreground)] mb-3">
+            Conversations over time
+          </div>
+          <div className="flex items-end gap-1 h-20">
+            {stats.days.map((d) => (
+              <div
+                key={d.day}
+                className="bg-[var(--harmony)] opacity-70 rounded-sm min-h-[2px] flex-1"
+                style={{ height: `${(d.count / maxDay) * 100}%` }}
+                title={`${d.day}: ${d.count}`}
+              />
+            ))}
+          </div>
+          <div className="flex gap-1 mt-1">
+            {stats.days.map((d) => (
+              <div
+                key={d.day}
+                className="text-[9px] text-[var(--muted-foreground)] text-center flex-1 truncate"
+              >
+                {d.day.slice(5)}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
+            <div className="text-sm font-semibold text-[var(--harmony)] mb-3">
+              Most Retrieved Entries
+            </div>
+            {stats.topChunks.length === 0 ? (
+              <div className="text-xs text-[var(--muted-foreground)]">No data yet.</div>
+            ) : (
+              stats.topChunks.map(([s, n], i) => {
+                const label = s.includes(": ") ? s.split(": ").slice(1).join(": ") : s;
+                return (
+                  <div key={s} className="flex items-center gap-2 py-1">
+                    <div className="text-xs text-[var(--muted-foreground)] w-5">{i + 1}.</div>
+                    <div className="text-sm text-[var(--neutral-ink)] flex-1 truncate">{label}</div>
+                    <div className="text-xs text-[var(--muted-foreground)]">{n}</div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
+            <div className="text-sm font-semibold text-[var(--harmony)] mb-3">
+              Most Asked Questions
+            </div>
+            {stats.topQuestions.length === 0 ? (
+              <div className="text-xs text-[var(--muted-foreground)]">No data yet.</div>
+            ) : (
+              stats.topQuestions.map(([q, n], i) => (
+                <div key={q} className="flex items-center gap-2 py-1">
+                  <div className="text-xs text-[var(--muted-foreground)] w-5">{i + 1}.</div>
+                  <div className="text-sm text-[var(--neutral-ink)] flex-1 truncate">
+                    {q.length > 55 ? `${q.slice(0, 55)}…` : q}
+                  </div>
+                  <div className="text-xs text-[var(--muted-foreground)]">{n}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[var(--harmony)]">Knowledge Base</h1>
