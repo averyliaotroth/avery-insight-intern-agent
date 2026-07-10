@@ -23,14 +23,24 @@ type Message = {
   followUpQuestions?: string[];
 };
 
-const SUGGESTIONS = [
+const ALL_SUGGESTIONS = [
   "What account did she support this summer?",
   "What was her role on the account team?",
   "What were her most meaningful experiences?",
   "How did she contribute to sales impact?",
   "What tools and AI did she use?",
   "What outcomes did she deliver?",
+  "Why did she build this portfolio agent?",
+  "What did she learn from her internship?",
+  "How does she approach strategic research?",
+  "What is her career direction?",
+  "How did she use AI in her work?",
+  "What makes her background distinctive?",
 ];
+
+const SUGGESTIONS = [...ALL_SUGGESTIONS]
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 6);
 
 const WELCOME: Message = {
   id: "welcome",
@@ -266,9 +276,14 @@ function ChatPage() {
               const displayText = isAnimating ? m.text.slice(0, typedLen) : m.text;
               return (
               <div key={m.id} className="flex gap-3">
-                <div className="shrink-0 w-8 h-8 rounded-full bg-[var(--harmony)] text-white flex items-center justify-center text-sm font-semibold">
-                  A
-                </div>
+                <img
+                  src="https://raw.githubusercontent.com/averyliaotroth/avery-insight-intern-agent/main/public/avery-headshot.jpeg"
+                  alt="Avery"
+                  className="shrink-0 w-8 h-8 rounded-full object-cover ring-1 ring-[var(--harmony)]"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
                 <div className="max-w-[95%] sm:max-w-[85%] min-w-0">
                   <div
                     className={`rounded-[12px] px-4 py-2.5 text-[15px] leading-relaxed border border-[var(--border)] text-[var(--neutral-ink)] whitespace-pre-wrap ${
@@ -348,9 +363,14 @@ function ChatPage() {
           )}
           {loading && (
             <div className="flex gap-3">
-              <div className="shrink-0 w-8 h-8 rounded-full bg-[var(--harmony)] text-white flex items-center justify-center text-sm font-semibold">
-                A
-              </div>
+              <img
+                src="https://raw.githubusercontent.com/averyliaotroth/avery-insight-intern-agent/main/public/avery-headshot.jpeg"
+                alt="Avery"
+                className="shrink-0 w-8 h-8 rounded-full object-cover ring-1 ring-[var(--harmony)]"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
               <div className="bg-[var(--card)] border border-[var(--border)] rounded-[12px] px-4 py-3 flex items-center gap-1.5">
                 <span className="typing-dot inline-block w-2 h-2 rounded-full bg-[var(--hunger)]" />
                 <span className="typing-dot inline-block w-2 h-2 rounded-full bg-[var(--hunger)]" />
