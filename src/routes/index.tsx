@@ -383,7 +383,7 @@ function ChatPage() {
                     </span>
                     {m.responseTime !== undefined && !m.welcome && (
                       <span className="text-[10px] text-[var(--muted-foreground)] opacity-60">
-                        {m.responseTime.toFixed(1)}s
+                        {m.responseTime.toFixed(1)}seconds
                       </span>
                     )}
                 </div>
