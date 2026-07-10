@@ -16,6 +16,7 @@ const EntryInput = z.object({
   week_number: z.number().int().min(1).max(10).nullable().optional(),
   tags: z.array(z.string()).nullable().optional(),
   is_featured: z.boolean().optional(),
+  question: z.string().nullable().optional(),
 });
 
 const DeleteInput = z.object({
@@ -95,6 +96,7 @@ export const upsertEntry = createServerFn({ method: "POST" })
       week_number: data.week_number ?? null,
       tags: data.tags ?? null,
       is_featured: data.is_featured ?? false,
+      question: data.question ?? null,
     };
     let entryId = data.id;
     if (data.id) {
