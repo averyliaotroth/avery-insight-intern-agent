@@ -21,6 +21,7 @@ type Message = {
   chunksUsed?: number;
   sources?: { category: string; title: string; similarity?: number }[];
   followUpQuestions?: string[];
+  responseTime?: number;
 };
 
 const ALL_SUGGESTIONS = [
@@ -169,6 +170,7 @@ function ChatPage() {
           content: m.text,
         }));
       
+      const startTime = Date.now();
       const res = await chat({ 
         data: { 
           message, 
@@ -176,7 +178,9 @@ function ChatPage() {
           history,
         } 
       });
+      const responseTime = ((Date.now() - startTime) / 1000);
       const agentId = `a-${Date.now()}`;
+
       setMessages((m) => [
         ...m,
         {
@@ -192,6 +196,7 @@ function ChatPage() {
             similarity: s.similarity,
           })),
           followUpQuestions: res.followUpQuestions ?? [],
+          responseTime,
         },
       ]);
       startTypewriter(agentId, res.reply);
@@ -376,8 +381,12 @@ function ChatPage() {
                     >
                       {formatTime(m.timestamp)}
                     </span>
+                    {m.responseTime !== undefined && !m.welcome && (
+                      <span className="text-[10px] text-[var(--muted-foreground)] opacity-60">
+                        {m.responseTime.toFixed(1)}s
+                      </span>
+                    )}
                 </div>
-
                 </div>
               </div>
               );
