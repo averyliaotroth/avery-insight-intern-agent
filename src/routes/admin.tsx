@@ -395,6 +395,109 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-[var(--harmony)]">Analytics</h2>
+          <div className="flex gap-2">
+            {(["7d", "30d", "All"] as DateRange[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => setDateRange(r)}
+                className={
+                  dateRange === r
+                    ? "bg-[var(--harmony)] text-white rounded-full px-3 py-1 text-xs"
+                    : "border border-[var(--harmony)] text-[var(--harmony)] bg-transparent rounded-full px-3 py-1 text-xs"
+                }
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {[
+            { n: stats.totalConversations, l: "Total Conversations" },
+            { n: stats.totalMessages, l: "Total Messages" },
+            { n: stats.topCategory, l: "Most Asked Topic" },
+            { n: `${stats.avgLen} chars`, l: "Avg Response Length" },
+          ].map((c) => (
+            <div key={c.l} className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
+              <div className="text-2xl font-bold text-[var(--harmony)]">
+                {analyticsLoading ? "..." : c.n}
+              </div>
+              <div className="text-xs text-[var(--muted-foreground)] mt-1">{c.l}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4 mb-4">
+          <div className="text-xs font-medium text-[var(--muted-foreground)] mb-3">
+            Conversations over time
+          </div>
+          <div className="flex items-end gap-1 h-20">
+            {stats.days.map((d) => (
+              <div
+                key={d.day}
+                className="bg-[var(--harmony)] opacity-70 rounded-sm min-h-[2px] flex-1"
+                style={{ height: `${(d.count / maxDay) * 100}%` }}
+                title={`${d.day}: ${d.count}`}
+              />
+            ))}
+          </div>
+          <div className="flex gap-1 mt-1">
+            {stats.days.map((d) => (
+              <div
+                key={d.day}
+                className="text-[9px] text-[var(--muted-foreground)] text-center flex-1 truncate"
+              >
+                {d.day.slice(5)}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
+            <div className="text-sm font-semibold text-[var(--harmony)] mb-3">
+              Most Retrieved Entries
+            </div>
+            {stats.topChunks.length === 0 ? (
+              <div className="text-xs text-[var(--muted-foreground)]">No data yet.</div>
+            ) : (
+              stats.topChunks.map(([s, n], i) => {
+                const label = s.includes(": ") ? s.split(": ").slice(1).join(": ") : s;
+                return (
+                  <div key={s} className="flex items-center gap-2 py-1">
+                    <div className="text-xs text-[var(--muted-foreground)] w-5">{i + 1}.</div>
+                    <div className="text-sm text-[var(--neutral-ink)] flex-1 truncate">{label}</div>
+                    <div className="text-xs text-[var(--muted-foreground)]">{n}</div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
+            <div className="text-sm font-semibold text-[var(--harmony)] mb-3">
+              Most Asked Questions
+            </div>
+            {stats.topQuestions.length === 0 ? (
+              <div className="text-xs text-[var(--muted-foreground)]">No data yet.</div>
+            ) : (
+              stats.topQuestions.map(([q, n], i) => (
+                <div key={q} className="flex items-center gap-2 py-1">
+                  <div className="text-xs text-[var(--muted-foreground)] w-5">{i + 1}.</div>
+                  <div className="text-sm text-[var(--neutral-ink)] flex-1 truncate">
+                    {q.length > 55 ? `${q.slice(0, 55)}…` : q}
+                  </div>
+                  <div className="text-xs text-[var(--muted-foreground)]">{n}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[var(--harmony)]">Knowledge Base</h1>
