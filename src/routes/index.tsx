@@ -73,9 +73,14 @@ function ChatPage() {
       return next;
     });
   }
-  const sessionIdRef = useRef<string>(
-    typeof crypto !== "undefined" ? crypto.randomUUID() : `s-${Date.now()}`,
-  );
+  const sessionIdRef = useRef<string>("");
+    useEffect(() => {
+      if (!sessionIdRef.current) {
+        sessionIdRef.current = typeof crypto !== "undefined" 
+          ? crypto.randomUUID() 
+          : `s-${Date.now()}`;
+      }
+    }, []);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
