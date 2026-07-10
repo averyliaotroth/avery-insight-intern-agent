@@ -38,12 +38,6 @@ const ALL_SUGGESTIONS = [
   "What makes her background distinctive?",
 ];
 
-const [SUGGESTIONS] = useState(() =>
-  [...ALL_SUGGESTIONS]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 6)
-);
-
 const WELCOME: Message = {
   id: "welcome",
   role: "agent",
@@ -63,6 +57,13 @@ function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
   const [shownQuestions, setShownQuestions] = useState<Set<string>>(new Set());
+
+  const [suggestions] = useState(() =>
+    [...ALL_SUGGESTIONS]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 6)
+  );
+
   function toggleSources(id: string) {
     setExpandedSources(prev => {
       const next = new Set(prev);
@@ -389,7 +390,7 @@ function ChatPage() {
 
         <div className="border-t border-[var(--border)] p-3 sm:p-4 space-y-3">
           <div className="flex gap-2 overflow-x-auto sm:flex-wrap sm:overflow-visible pb-1 -mx-1 px-1">
-            {SUGGESTIONS.map((q) => (
+            {suggestions.map((q) => (
               <button
                 key={q}
                 onClick={() => send(q)}
