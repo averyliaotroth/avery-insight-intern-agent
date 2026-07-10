@@ -38,11 +38,13 @@ const ALL_SUGGESTIONS = [
   "What makes her background distinctive?",
 ];
 
+const WELCOME_TIMESTAMP = new Date(0);
+
 const WELCOME: Message = {
   id: "welcome",
   role: "agent",
   text: "Hi! I'm an AI agent built by Avery Liao-Troth as her capstone project during her Account Executive Internship at Insight. She conceptualized, designed, and deployed me to explore AI product development firsthand, from defining requirements and architecting a solution to building, iterating, and shipping a working product. Ask me about her experience, her process, or what she learned along the way.",
-  timestamp: new Date(),
+  timestamp: WELCOME_TIMESTAMP,
   welcome: true,
 };
 
