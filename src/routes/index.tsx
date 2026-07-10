@@ -179,7 +179,11 @@ function ChatPage() {
           category: res.chunksUsed > 0 ? res.categoryTag : null,
           timestamp: new Date(),
           chunksUsed: res.chunksUsed,
-          sources: res.sources ?? [],
+          sources: (res.sources ?? []).map(s => ({
+            category: s.category,
+            title: s.title,
+            similarity: s.similarity,
+          })),
           followUpQuestions: res.followUpQuestions ?? [],
         },
       ]);
