@@ -129,6 +129,7 @@ type FormState = {
   week_number: string;
   tagsInput: string;
   is_featured: boolean;
+  question: string;
 };
 
 function emptyForm(): FormState {
@@ -139,6 +140,7 @@ function emptyForm(): FormState {
     week_number: "",
     tagsInput: "",
     is_featured: false,
+    question: "";
   };
 }
 
@@ -228,6 +230,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
       week_number: e.week_number ? String(e.week_number) : "",
       tagsInput: e.tags?.join(", ") ?? "",
       is_featured: e.is_featured,
+      question: (e as any).question ?? "",
     });
     setShowForm(true);
   }
@@ -254,6 +257,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
           week_number: week,
           tags: tags.length ? tags : null,
           is_featured: form.is_featured,
+          question: form.question.trim() || null,
         },
       });
       toast.success(form.id ? "Entry updated" : "Entry created");
@@ -512,6 +516,17 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                   </label>
                 </Field>
               </div>
+              <Field label="Follow-up Question (optional)">
+                <input
+                  value={form.question}
+                  onChange={(e) => setForm({ ...form, question: e.target.value })}
+                  placeholder="e.g. What did she learn about entertainment infrastructure?"
+                  className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]"
+                />
+                <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
+                  This is what shows as a suggested follow-up chip in the chat interface.
+                </p>
+              </Field>
               <Field label="Tags (comma-separated)">
                 <input
                   value={form.tagsInput}
