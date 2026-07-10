@@ -38,9 +38,11 @@ const ALL_SUGGESTIONS = [
   "What makes her background distinctive?",
 ];
 
-const SUGGESTIONS = [...ALL_SUGGESTIONS]
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 6);
+const [SUGGESTIONS] = useState(() =>
+  [...ALL_SUGGESTIONS]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 6)
+);
 
 const WELCOME: Message = {
   id: "welcome",
