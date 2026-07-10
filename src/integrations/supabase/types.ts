@@ -49,6 +49,7 @@ export type Database = {
           embedding: string | null
           id: string
           is_featured: boolean
+          question: string | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -61,6 +62,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           is_featured?: boolean
+          question?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -73,6 +75,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           is_featured?: boolean
+          question?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string

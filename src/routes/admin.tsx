@@ -140,7 +140,7 @@ function emptyForm(): FormState {
     week_number: "",
     tagsInput: "",
     is_featured: false,
-    question: "";
+    question: "",
   };
 }
 
