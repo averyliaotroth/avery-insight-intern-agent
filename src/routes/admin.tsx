@@ -177,6 +177,9 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [saving, setSaving] = useState(false);
   const [missingCount, setMissingCount] = useState(0);
   const [backfilling, setBackfilling] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsRow[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRange>("30d");
 
   async function refresh() {
     setLoading(true);
@@ -196,10 +199,102 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     }
   }
 
+  async function loadAnalytics() {
+    setAnalyticsLoading(true);
+    try {
+      const { data, error } = await analyticsSupabase
+        .from("conversation_logs")
+        .select("id, session_id, user_message, knowledge_chunks_used, created_at, agent_response");
+      if (!error && data) setAnalyticsData(data as AnalyticsRow[]);
+    } catch {
+      // silent
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }
+
   useEffect(() => {
     refresh();
+    loadAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const filteredAnalytics = useMemo(() => {
+    if (dateRange === "All") return analyticsData;
+    const days = dateRange === "7d" ? 7 : 30;
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    return analyticsData.filter((r) => new Date(r.created_at).getTime() >= cutoff);
+  }, [analyticsData, dateRange]);
+
+  const stats = useMemo(() => {
+    const sessions = new Set<string>();
+    filteredAnalytics.forEach((r) => {
+      if (r.session_id) sessions.add(r.session_id);
+    });
+    const totalMessages = filteredAnalytics.length;
+
+    const catCounts = new Map<string, number>();
+    const chunkCounts = new Map<string, number>();
+    filteredAnalytics.forEach((r) => {
+      (r.knowledge_chunks_used ?? []).forEach((s) => {
+        if (!s) return;
+        chunkCounts.set(s, (chunkCounts.get(s) ?? 0) + 1);
+        const cat = s.split(": ")[0];
+        if (cat) catCounts.set(cat, (catCounts.get(cat) ?? 0) + 1);
+      });
+    });
+    let topCat = "—";
+    let topCatN = 0;
+    catCounts.forEach((n, k) => {
+      if (n > topCatN) {
+        topCatN = n;
+        topCat = k;
+      }
+    });
+
+    const respLens = filteredAnalytics
+      .map((r) => (r.agent_response ?? "").length)
+      .filter((n) => n > 0);
+    const avgLen = respLens.length
+      ? Math.round(respLens.reduce((a, b) => a + b, 0) / respLens.length)
+      : 0;
+
+    const topChunks = Array.from(chunkCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const qCounts = new Map<string, number>();
+    filteredAnalytics.forEach((r) => {
+      const q = (r.user_message ?? "").trim();
+      if (q) qCounts.set(q, (qCounts.get(q) ?? 0) + 1);
+    });
+    const topQuestions = Array.from(qCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const dayCounts = new Map<string, Set<string>>();
+    filteredAnalytics.forEach((r) => {
+      const day = r.created_at.slice(0, 10);
+      if (!dayCounts.has(day)) dayCounts.set(day, new Set());
+      if (r.session_id) dayCounts.get(day)!.add(r.session_id);
+    });
+    const days = Array.from(dayCounts.entries())
+      .map(([d, s]) => ({ day: d, count: s.size }))
+      .sort((a, b) => a.day.localeCompare(b.day));
+
+    return {
+      totalConversations: sessions.size,
+      totalMessages,
+      topCategory: topCat,
+      avgLen,
+      topChunks,
+      topQuestions,
+      days,
+    };
+  }, [filteredAnalytics]);
+
+  const maxDay = Math.max(1, ...stats.days.map((d) => d.count));
+
 
   async function runBackfill() {
     setBackfilling(true);
