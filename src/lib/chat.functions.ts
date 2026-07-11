@@ -57,7 +57,14 @@ export const chatWithAgent = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("AI service is not configured.");
 
     const { createClient } = await import("@supabase/supabase-js");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      let supabaseAdmin: any = null;
+      try {
+        const mod = await import("@/integrations/supabase/client.server");
+        supabaseAdmin = mod.supabaseAdmin;
+      } catch (err) {
+        console.warn("[Admin] Supabase admin client unavailable — logging skipped:", err instanceof Error ? err.message : err);
+      }
+
 
     // Anon/publishable client for READ operations
     const supabaseRead = createClient(
@@ -229,6 +236,7 @@ try {
 
     // Log the conversation via admin client (RLS default-deny on writes)
     try {
+      if (supabaseAdmin) {
       const { error: logError } = await supabaseAdmin.from("conversation_logs").insert({
         session_id: data.sessionId,
         user_message: data.message,
@@ -236,6 +244,7 @@ try {
         knowledge_chunks_used: chunks.map((c) => `${c.category}: ${c.title}`),
       });
       if (logError) console.warn("[ConversationLog] Failed to log:", logError.message);
+      }
     } catch (err) {
       console.warn("[ConversationLog] Failed to log:", err instanceof Error ? err.message : err);
     }
