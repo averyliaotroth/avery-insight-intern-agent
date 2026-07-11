@@ -35,10 +35,13 @@ function checkPassword(p: string) {
 function getAdminClient() {
   const url = process.env.SUPABASE_URL;
   const serviceKey =
-    process.env.SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY;
   if (!url || !serviceKey) {
-    throw new Error("Missing SUPABASE_URL or SERVICE_ROLE_KEY on the server.");
+    throw new Error("Missing SUPABASE_URL or key on the server.");
   }
+
   return createClient<Database>(url, serviceKey, {
     global: {
       // New-format sb_secret_* keys are opaque, not JWTs. Send them as apikey
