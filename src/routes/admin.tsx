@@ -87,6 +87,7 @@ type Entry = {
 
 const AUTH_KEY = "insight_admin_auth";
 
+// ─── AdminPage — handles login gate only ──────────────────────────────────────
 function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [pwd, setPwd] = useState("");
@@ -106,6 +107,7 @@ function AdminPage() {
   }
 
   if (!authed) {
+    // ← RESTORED: original login card, untouched
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-6">
         <div className="bg-[var(--card)] rounded-[12px] shadow-elevated w-full max-w-sm overflow-hidden">
@@ -161,12 +163,17 @@ function emptyForm(): FormState {
   };
 }
 
+// ─── KnowledgeManager — full admin UI with tabs ───────────────────────────────
 function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const list = useServerFn(listEntries);
   const upsert = useServerFn(upsertEntry);
   const del = useServerFn(deleteEntry);
   const backfill = useServerFn(backfillEmbeddings);
   const countMissing = useServerFn(countMissingEmbeddings);
+
+  // ← NEW: tab state lives here, in KnowledgeManager
+  const [activeTab, setActiveTab] = useState<"kb" | "analytics">("kb");
+
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState<string>("All");
@@ -295,7 +302,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
 
   const maxDay = Math.max(1, ...stats.days.map((d) => d.count));
 
-
   async function runBackfill() {
     setBackfilling(true);
     try {
@@ -326,7 +332,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
           (e.tags ?? []).some((t) => t.toLowerCase().includes(q))),
     );
   }, [entries, filterCat, filterWeek, searchQuery]);
-
 
   function openNew() {
     setForm(emptyForm());
@@ -395,275 +400,309 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[var(--harmony)]">Analytics</h2>
-          <div className="flex gap-2">
-            {(["7d", "30d", "All"] as DateRange[]).map((r) => (
-              <button
-                key={r}
-                onClick={() => setDateRange(r)}
-                className={
-                  dateRange === r
-                    ? "bg-[var(--harmony)] text-white rounded-full px-3 py-1 text-xs"
-                    : "border border-[var(--harmony)] text-[var(--harmony)] bg-transparent rounded-full px-3 py-1 text-xs"
-                }
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {[
-            { n: stats.totalConversations, l: "Total Conversations" },
-            { n: stats.totalMessages, l: "Total Messages" },
-            { n: stats.topCategory, l: "Most Asked Topic" },
-            { n: `${stats.avgLen} chars`, l: "Avg Response Length" },
-          ].map((c) => (
-            <div key={c.l} className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
-              <div className="text-2xl font-bold text-[var(--harmony)]">
-                {analyticsLoading ? "..." : c.n}
-              </div>
-              <div className="text-xs text-[var(--muted-foreground)] mt-1">{c.l}</div>
+      {/* ── TAB BUTTONS — new, lives at top of KnowledgeManager ── */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab("kb")}
+          className={`px-4 py-2 rounded-[8px] text-sm font-medium transition-colors ${
+            activeTab === "kb"
+              ? "bg-[var(--harmony)] text-white"
+              : "border border-[var(--harmony)] text-[var(--harmony)] bg-transparent hover:bg-[var(--harmony-lite)]"
+          }`}
+        >
+          Knowledge Base
+        </button>
+        <button
+          onClick={() => setActiveTab("analytics")}
+          className={`px-4 py-2 rounded-[8px] text-sm font-medium transition-colors ${
+            activeTab === "analytics"
+              ? "bg-[var(--harmony)] text-white"
+              : "border border-[var(--harmony)] text-[var(--harmony)] bg-transparent hover:bg-[var(--harmony-lite)]"
+          }`}
+        >
+          Analytics
+        </button>
+      </div>
+
+      {/* ── ANALYTICS TAB ── */}
+      {activeTab === "analytics" && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-[var(--harmony)]">Analytics</h2>
+            <div className="flex gap-2">
+              {(["7d", "30d", "All"] as DateRange[]).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setDateRange(r)}
+                  className={
+                    dateRange === r
+                      ? "bg-[var(--harmony)] text-white rounded-full px-3 py-1 text-xs"
+                      : "border border-[var(--harmony)] text-[var(--harmony)] bg-transparent rounded-full px-3 py-1 text-xs"
+                  }
+                >
+                  {r}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
 
-        <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4 mb-4">
-          <div className="text-xs font-medium text-[var(--muted-foreground)] mb-3">
-            Conversations over time
-          </div>
-          <div className="flex items-end gap-1 h-20">
-            {stats.days.map((d) => (
-              <div
-                key={d.day}
-                className="bg-[var(--harmony)] opacity-70 rounded-sm min-h-[2px] flex-1"
-                style={{ height: `${(d.count / maxDay) * 100}%` }}
-                title={`${d.day}: ${d.count}`}
-              />
-            ))}
-          </div>
-          <div className="flex gap-1 mt-1">
-            {stats.days.map((d) => (
-              <div
-                key={d.day}
-                className="text-[9px] text-[var(--muted-foreground)] text-center flex-1 truncate"
-              >
-                {d.day.slice(5)}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            {[
+              { n: stats.totalConversations, l: "Total Conversations" },
+              { n: stats.totalMessages, l: "Total Messages" },
+              { n: stats.topCategory, l: "Most Asked Topic" },
+              { n: `${stats.avgLen} chars`, l: "Avg Response Length" },
+            ].map((c) => (
+              <div key={c.l} className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
+                <div className="text-2xl font-bold text-[var(--harmony)]">
+                  {analyticsLoading ? "..." : c.n}
+                </div>
+                <div className="text-xs text-[var(--muted-foreground)] mt-1">{c.l}</div>
               </div>
             ))}
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
-            <div className="text-sm font-semibold text-[var(--harmony)] mb-3">
-              Most Retrieved Entries
+          <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4 mb-4">
+            <div className="text-xs font-medium text-[var(--muted-foreground)] mb-3">
+              Conversations over time
             </div>
-            {stats.topChunks.length === 0 ? (
-              <div className="text-xs text-[var(--muted-foreground)]">No data yet.</div>
-            ) : (
-              stats.topChunks.map(([s, n], i) => {
-                const label = s.includes(": ") ? s.split(": ").slice(1).join(": ") : s;
-                return (
-                  <div key={s} className="flex items-center gap-2 py-1">
+            <div className="flex items-end gap-1 h-20">
+              {stats.days.map((d) => (
+                <div
+                  key={d.day}
+                  className="bg-[var(--harmony)] opacity-70 rounded-sm min-h-[2px] flex-1"
+                  style={{ height: `${(d.count / maxDay) * 100}%` }}
+                  title={`${d.day}: ${d.count}`}
+                />
+              ))}
+            </div>
+            <div className="flex gap-1 mt-1">
+              {stats.days.map((d) => (
+                <div
+                  key={d.day}
+                  className="text-[9px] text-[var(--muted-foreground)] text-center flex-1 truncate"
+                >
+                  {d.day.slice(5)}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
+              <div className="text-sm font-semibold text-[var(--harmony)] mb-3">
+                Most Retrieved Entries
+              </div>
+              {stats.topChunks.length === 0 ? (
+                <div className="text-xs text-[var(--muted-foreground)]">No data yet.</div>
+              ) : (
+                stats.topChunks.map(([s, n], i) => {
+                  const label = s.includes(": ") ? s.split(": ").slice(1).join(": ") : s;
+                  return (
+                    <div key={s} className="flex items-center gap-2 py-1">
+                      <div className="text-xs text-[var(--muted-foreground)] w-5">{i + 1}.</div>
+                      <div className="text-sm text-[var(--neutral-ink)] flex-1 truncate">{label}</div>
+                      <div className="text-xs text-[var(--muted-foreground)]">{n}</div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
+              <div className="text-sm font-semibold text-[var(--harmony)] mb-3">
+                Most Asked Questions
+              </div>
+              {stats.topQuestions.length === 0 ? (
+                <div className="text-xs text-[var(--muted-foreground)]">No data yet.</div>
+              ) : (
+                stats.topQuestions.map(([q, n], i) => (
+                  <div key={q} className="flex items-center gap-2 py-1">
                     <div className="text-xs text-[var(--muted-foreground)] w-5">{i + 1}.</div>
-                    <div className="text-sm text-[var(--neutral-ink)] flex-1 truncate">{label}</div>
+                    <div className="text-sm text-[var(--neutral-ink)] flex-1 truncate">
+                      {q.length > 55 ? `${q.slice(0, 55)}…` : q}
+                    </div>
                     <div className="text-xs text-[var(--muted-foreground)]">{n}</div>
                   </div>
-                );
-              })
-            )}
-          </div>
-          <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4">
-            <div className="text-sm font-semibold text-[var(--harmony)] mb-3">
-              Most Asked Questions
+                ))
+              )}
             </div>
-            {stats.topQuestions.length === 0 ? (
-              <div className="text-xs text-[var(--muted-foreground)]">No data yet.</div>
-            ) : (
-              stats.topQuestions.map(([q, n], i) => (
-                <div key={q} className="flex items-center gap-2 py-1">
-                  <div className="text-xs text-[var(--muted-foreground)] w-5">{i + 1}.</div>
-                  <div className="text-sm text-[var(--neutral-ink)] flex-1 truncate">
-                    {q.length > 55 ? `${q.slice(0, 55)}…` : q}
-                  </div>
-                  <div className="text-xs text-[var(--muted-foreground)]">{n}</div>
-                </div>
-              ))
-            )}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--harmony)]">Knowledge Base</h1>
-          <p className="text-sm text-[var(--muted-foreground)]">
-            Manage entries that the agent uses to answer questions.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {missingCount > 0 && (
-            <button
-              onClick={runBackfill}
-              disabled={backfilling}
-              className="text-sm px-4 py-2 rounded-[8px] border border-[var(--harmony)] text-[var(--harmony)] bg-transparent hover:bg-[var(--harmony-lite)] inline-flex items-center gap-2 disabled:opacity-60"
-            >
-              {backfilling ? (
-                <span className="w-4 h-4 border-2 border-[var(--harmony)]/40 border-t-[var(--harmony)] rounded-full animate-spin" />
-              ) : null}
-              {backfilling ? "Generating…" : `Generate Embeddings (${missingCount})`}
-            </button>
-          )}
-          <button
-            onClick={openNew}
-            className="bg-[var(--hunger)] hover:bg-[var(--heart)] text-white px-4 py-2 rounded-[8px] text-sm font-medium inline-flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" /> Add New Entry
-          </button>
-          <button
-            onClick={onLogout}
-            className="text-sm text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)] px-3 py-2"
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
+      {/* ── KNOWLEDGE BASE TAB ── */}
+      {activeTab === "kb" && (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-[var(--harmony)]">Knowledge Base</h1>
+              <p className="text-sm text-[var(--muted-foreground)]">
+                Manage entries that the agent uses to answer questions.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {missingCount > 0 && (
+                <button
+                  onClick={runBackfill}
+                  disabled={backfilling}
+                  className="text-sm px-4 py-2 rounded-[8px] border border-[var(--harmony)] text-[var(--harmony)] bg-transparent hover:bg-[var(--harmony-lite)] inline-flex items-center gap-2 disabled:opacity-60"
+                >
+                  {backfilling ? (
+                    <span className="w-4 h-4 border-2 border-[var(--harmony)]/40 border-t-[var(--harmony)] rounded-full animate-spin" />
+                  ) : null}
+                  {backfilling ? "Generating…" : `Generate Embeddings (${missingCount})`}
+                </button>
+              )}
+              <button
+                onClick={openNew}
+                className="bg-[var(--hunger)] hover:bg-[var(--heart)] text-white px-4 py-2 rounded-[8px] text-sm font-medium inline-flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Add New Entry
+              </button>
+              <button
+                onClick={onLogout}
+                className="text-sm text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)] px-3 py-2"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
 
-      <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4 mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-[var(--muted-foreground)]">Category</label>
-          <select
-            value={filterCat}
-            onChange={(e) => setFilterCat(e.target.value)}
-            className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)]"
-          >
-            <option>All</option>
-            {CATEGORIES.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-[var(--muted-foreground)]">Week</label>
-          <select
-            value={filterWeek}
-            onChange={(e) => setFilterWeek(e.target.value)}
-            className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)]"
-          >
-            <option>All</option>
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((w) => (
-              <option key={w}>{w}</option>
-            ))}
-          </select>
-        </div>
-        <div className="relative flex-1 min-w-[200px]">
-          <input
-            type="text"
-            placeholder="Search title, content, category, or tag..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-1.5 rounded-[8px] border border-[var(--border)] 
-                       text-sm bg-[var(--card)] text-[var(--foreground)] 
-                       placeholder:text-[var(--muted-foreground)]
-                       focus:outline-none focus:border-[var(--hunger)]"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 
-                         text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)]"
-              aria-label="Clear search"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-        <div className="ml-auto text-xs text-[var(--muted-foreground)]">
-          {filtered.length} of {entries.length} entries
-        </div>
-      </div>
+          <div className="bg-[var(--card)] rounded-[12px] shadow-card p-4 mb-4 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-[var(--muted-foreground)]">Category</label>
+              <select
+                value={filterCat}
+                onChange={(e) => setFilterCat(e.target.value)}
+                className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)]"
+              >
+                <option>All</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-[var(--muted-foreground)]">Week</label>
+              <select
+                value={filterWeek}
+                onChange={(e) => setFilterWeek(e.target.value)}
+                className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)]"
+              >
+                <option>All</option>
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((w) => (
+                  <option key={w}>{w}</option>
+                ))}
+              </select>
+            </div>
+            <div className="relative flex-1 min-w-[200px]">
+              <input
+                type="text"
+                placeholder="Search title, content, category, or tag..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-3 py-1.5 rounded-[8px] border border-[var(--border)] 
+                           text-sm bg-[var(--card)] text-[var(--foreground)] 
+                           placeholder:text-[var(--muted-foreground)]
+                           focus:outline-none focus:border-[var(--hunger)]"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 
+                             text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)]"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="ml-auto text-xs text-[var(--muted-foreground)]">
+              {filtered.length} of {entries.length} entries
+            </div>
+          </div>
 
-      <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-[var(--muted)] text-left text-[var(--muted-foreground)]">
-            <tr>
-              <th className="px-4 py-3 font-medium">Category</th>
-              <th className="px-4 py-3 font-medium">Title</th>
-              <th className="px-4 py-3 font-medium">Week</th>
-              <th className="px-4 py-3 font-medium">Tags</th>
-              <th className="px-4 py-3 font-medium">Featured</th>
-              <th className="px-4 py-3 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted-foreground)]">
-                  Loading…
-                </td>
-              </tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-12 text-center">
-                  <FileText className="w-8 h-8 mx-auto text-[var(--muted-foreground)] mb-2" />
-                  <div className="text-[var(--muted-foreground)]">No entries yet.</div>
-                  <button
-                    onClick={openNew}
-                    className="mt-3 text-sm text-[var(--hunger)] font-medium hover:underline"
-                  >
-                    Add your first entry
-                  </button>
-                </td>
-              </tr>
-            ) : (
-              filtered.map((e) => (
-                <tr key={e.id} className="border-t border-[var(--border)]">
-                  <td className="px-4 py-3 w-[160px]">
-                    <span className={`${categoryPillClass(e.category)} text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap inline-block`}>
-                      {e.category}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-[var(--neutral-ink)] max-w-md truncate">
-                    {e.title}
-                  </td>
-                  <td className="px-4 py-3 text-[var(--muted-foreground)]">{e.week_number ?? "—"}</td>
-                  <td className="px-4 py-3 text-[var(--muted-foreground)] text-xs">
-                    {e.tags?.join(", ") || "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    {e.is_featured ? (
-                      <span className="text-[var(--hunger)] font-semibold">★</span>
-                    ) : (
-                      <span className="text-[var(--muted-foreground)]">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => openEdit(e)}
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--harmony)] hover:bg-[var(--harmony-lite)]"
-                      aria-label="Edit"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => remove(e.id)}
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--heart)] hover:bg-[var(--hunger-lite)] ml-1"
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
+          <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-[var(--muted)] text-left text-[var(--muted-foreground)]">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Category</th>
+                  <th className="px-4 py-3 font-medium">Title</th>
+                  <th className="px-4 py-3 font-medium">Week</th>
+                  <th className="px-4 py-3 font-medium">Tags</th>
+                  <th className="px-4 py-3 font-medium">Featured</th>
+                  <th className="px-4 py-3 font-medium text-right">Actions</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted-foreground)]">
+                      Loading…
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center">
+                      <FileText className="w-8 h-8 mx-auto text-[var(--muted-foreground)] mb-2" />
+                      <div className="text-[var(--muted-foreground)]">No entries yet.</div>
+                      <button
+                        onClick={openNew}
+                        className="mt-3 text-sm text-[var(--hunger)] font-medium hover:underline"
+                      >
+                        Add your first entry
+                      </button>
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((e) => (
+                    <tr key={e.id} className="border-t border-[var(--border)]">
+                      <td className="px-4 py-3 w-[160px]">
+                        <span className={`${categoryPillClass(e.category)} text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap inline-block`}>
+                          {e.category}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-medium text-[var(--neutral-ink)] max-w-md truncate">
+                        {e.title}
+                      </td>
+                      <td className="px-4 py-3 text-[var(--muted-foreground)]">{e.week_number ?? "—"}</td>
+                      <td className="px-4 py-3 text-[var(--muted-foreground)] text-xs">
+                        {e.tags?.join(", ") || "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {e.is_featured ? (
+                          <span className="text-[var(--hunger)] font-semibold">★</span>
+                        ) : (
+                          <span className="text-[var(--muted-foreground)]">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => openEdit(e)}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--harmony)] hover:bg-[var(--harmony-lite)]"
+                          aria-label="Edit"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => remove(e.id)}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--heart)] hover:bg-[var(--hunger-lite)] ml-1"
+                          aria-label="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
+      {/* ── FORM MODAL — outside tab conditionals, always available ── */}
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/40 flex justify-end" onClick={() => setShowForm(false)}>
           <div
@@ -785,6 +824,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
       )}
+
     </div>
   );
 }
