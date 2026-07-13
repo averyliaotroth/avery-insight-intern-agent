@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
 import { listEntries, upsertEntry, deleteEntry } from "@/lib/knowledge.functions";
 import { backfillEmbeddings, countMissingEmbeddings } from "@/lib/backfill";
+import { summarizeEntry } from "@/lib/summarize.functions";
+
 
 const analyticsSupabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -170,6 +172,8 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const del = useServerFn(deleteEntry);
   const backfill = useServerFn(backfillEmbeddings);
   const countMissing = useServerFn(countMissingEmbeddings);
+  const summarize = useServerFn(summarizeEntry);
+
 
   // ← NEW: tab state lives here, in KnowledgeManager
   const [activeTab, setActiveTab] = useState<"kb" | "analytics">("kb");
@@ -181,6 +185,9 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [previewEntry, setPreviewEntry] = useState<Entry | null>(null);
+  const [summary, setSummary] = useState<string[]>([]);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [missingCount, setMissingCount] = useState(0);
@@ -226,6 +233,21 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     loadAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!previewEntry) {
+      setSummary([]);
+      setSummaryLoading(false);
+      return;
+    }
+    setSummaryLoading(true);
+    setSummary([]);
+    summarize({ data: { content: previewEntry.content } })
+      .then((res) => setSummary(res.bullets ?? []))
+      .catch(() => setSummary([]))
+      .finally(() => setSummaryLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewEntry?.id]);
 
   const filteredAnalytics = useMemo(() => {
     if (dateRange === "All") return analyticsData;
@@ -881,11 +903,33 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
               ) : null}
               <div>
                 <div className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
-                  Content
+                  AI Summary
                 </div>
-                <p className="text-sm text-[var(--neutral-ink)] leading-relaxed whitespace-pre-wrap">
-                  {previewEntry.content}
-                </p>
+                {summaryLoading ? (
+                  <div className="space-y-2">
+                    {[90, 75, 85, 65].map((w, i) => (
+                      <div
+                        key={i}
+                        className="h-3 rounded bg-[var(--muted)] animate-pulse"
+                        style={{ width: `${w}%` }}
+                      />
+                    ))}
+                  </div>
+                ) : summary.length > 0 ? (
+                  <ul className="list-disc list-inside text-sm text-[var(--neutral-ink)] leading-relaxed space-y-1">
+                    {summary.map((bullet, i) => (
+                      <li key={i} className="pl-1">
+                        <span className="text-[var(--neutral-ink)]">
+                          {bullet.replace(/^[-•*]\s*/, "")}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-[var(--neutral-ink)] leading-relaxed whitespace-pre-wrap">
+                    No summary available.
+                  </p>
+                )}
               </div>
             </div>
           </div>
