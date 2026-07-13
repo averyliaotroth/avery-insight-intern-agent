@@ -183,6 +183,8 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [filterCat, setFilterCat] = useState<string>("All");
   const [filterWeek, setFilterWeek] = useState<string>("All");
   const [filterFeatured, setFilterFeatured] = useState<"all" | "featured" | "not">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 50;
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [previewEntry, setPreviewEntry] = useState<Entry | null>(null);
@@ -344,6 +346,12 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
       setBackfilling(false);
     }
   }
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterCat, filterWeek, filterFeatured, searchQuery, sortCol, sortDir]);
+
 
     const filtered = useMemo(() => {
       const q = searchQuery.toLowerCase().trim();
@@ -393,6 +401,11 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
         return result;
       }, [entries, filterCat, filterWeek, filterFeatured, searchQuery, sortCol, sortDir]);
 
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      const paginated = filtered.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE,
+      );
 
   function openNew() {
     setForm(emptyForm());
@@ -694,10 +707,24 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
             </div>
             <div className="ml-auto text-xs text-[var(--muted-foreground)]">
               {filtered.length} of {entries.length} entries
+              {totalPages > 1 && (
+                <span className="ml-2 text-[var(--harmony)]">
+                  · page {currentPage} of {totalPages}
+                </span>
+              )}
             </div>
           </div>
 
+          {filtered.length > PAGE_SIZE && (
+            <div className="flex items-center justify-between mb-2 px-1">
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Showing {((currentPage - 1) * PAGE_SIZE) + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length} entries
+              </p>
+            </div>
+          )}
+
           <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden">
+
             <table className="w-full text-sm">
                 <thead className="bg-[var(--muted)] text-left text-[var(--muted-foreground)]">
                 <tr>
@@ -758,7 +785,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((e) => (
+                  paginated.map((e) => (
                     <tr
                       key={e.id}
                       onClick={() => setPreviewEntry(e)}
@@ -808,8 +835,77 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
               </tbody>
             </table>
           </div>
+          
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-[8px] text-xs font-medium border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                «
+              </button>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-[8px] text-xs font-medium border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                ‹
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) =>
+                  p === 1 ||
+                  p === totalPages ||
+                  Math.abs(p - currentPage) <= 1
+                )
+                .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                  if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
+                    acc.push("...");
+                  }
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, idx) =>
+                  p === "..." ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="px-2 text-xs text-[var(--muted-foreground)]"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p as number)}
+                      className={`px-3 py-1.5 rounded-[8px] text-xs font-medium transition-colors ${
+                        currentPage === p
+                          ? "bg-[var(--harmony)] text-white"
+                          : "border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)]"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-[8px] text-xs font-medium border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                ›
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-[8px] text-xs font-medium border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                »
+              </button>
+            </div>
+          )}
         </>
       )}
+
 
       {/* ── FORM MODAL — outside tab conditionals, always available ── */}
       {showForm && (
