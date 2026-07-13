@@ -801,14 +801,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-
-                        <button
-                          onClick={() => remove(e.id)}
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--heart)] hover:bg-[var(--hunger-lite)] ml-1"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </td>
                     </tr>
                   ))
