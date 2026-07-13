@@ -199,7 +199,11 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [backfilling, setBackfilling] = useState(false);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsRow[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
-  const [dateRange, setDateRange] = useState<DateRange>("30d");
+    const [dateRange, setDateRange] = useState<DateRange>("30d");
+  const [previewConvo, setPreviewConvo] = useState<AnalyticsRow | null>(null);
+  const [convoPage, setConvoPage] = useState(1);
+  const CONVO_PAGE_SIZE = 10;
+  const [flagging, setFlagging] = useState<string | null>(null);
 
   async function refresh() {
     setLoading(true);
@@ -261,6 +265,19 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     return analyticsData.filter((r) => new Date(r.created_at).getTime() >= cutoff);
   }, [analyticsData, dateRange]);
 
+  const sortedConvos = useMemo(() => {
+    return [...analyticsData].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [analyticsData]);
+
+  const totalConvoPages = Math.max(1, Math.ceil(sortedConvos.length / CONVO_PAGE_SIZE));
+  const paginatedConvos = sortedConvos.slice(
+    (convoPage - 1) * CONVO_PAGE_SIZE,
+    convoPage * CONVO_PAGE_SIZE,
+  );
+
+  
   const stats = useMemo(() => {
     const sessions = new Set<string>();
     filteredAnalytics.forEach((r) => {
@@ -602,57 +619,131 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
               )}
             </div>
           </div>
-
           <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden mt-4">
-            <div className="px-4 py-3 border-b border-[var(--border)]">
-              <div className="text-sm font-semibold text-[var(--harmony)]">
-                Recent Conversations
+            <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-[var(--harmony)]">
+                  Recent Conversations
+                </div>
+                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                  Click any row to read the full response. Flag incorrect ones for review.
+                </p>
               </div>
-              <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                Flag any response that contains incorrect information.
-              </p>
+              {sortedConvos.length > 0 && (
+                <div className="text-xs text-[var(--muted-foreground)]">
+                  {sortedConvos.length} total
+                </div>
+              )}
             </div>
             <div className="divide-y divide-[var(--border)]">
               {analyticsLoading ? (
                 <div className="px-4 py-6 text-center text-sm text-[var(--muted-foreground)]">
                   Loading…
                 </div>
-              ) : filteredAnalytics.length === 0 ? (
+              ) : sortedConvos.length === 0 ? (
                 <div className="px-4 py-6 text-center text-sm text-[var(--muted-foreground)]">
                   No conversations yet.
                 </div>
               ) : (
-                [...filteredAnalytics]
-                  .sort((a, b) =>
-                    new Date(b.created_at).getTime() -
-                    new Date(a.created_at).getTime()
-                  )
-                  .slice(0, 20)
-                  .map((row) => (
-                    <div key={row.id} className="px-4 py-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-[var(--neutral-ink)] truncate">
-                            {row.user_message ?? "—"}
-                          </p>
-                          <p className="text-xs text-[var(--muted-foreground)] mt-1 line-clamp-2 leading-relaxed">
-                            {row.agent_response ?? "—"}
-                          </p>
+                paginatedConvos.map((row) => {
+                  const status = (row as any).feedback as string | null;
+                  return (
+                    <div
+                      key={row.id}
+                      onClick={() => setPreviewConvo(row)}
+                      className="px-4 py-3 cursor-pointer hover:bg-[var(--muted)] transition-colors"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="text-xs font-medium text-[var(--neutral-ink)] truncate flex-1">
+                          {row.user_message ?? "—"}
+                        </p>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {status === "verified" ? (
+                            <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                              <span>✓</span> Verified
+                            </span>
+                          ) : status === "needs_fix" ? (
+                            <span className="text-[10px] font-medium text-[var(--heart)] inline-flex items-center gap-1">
+                              <span>✗</span> Flagged
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-[var(--muted-foreground)]">
+                              Unreviewed
+                            </span>
+                          )}
+                          <span className="text-[9px] text-[var(--muted-foreground)]">
+                            {new Date(row.created_at).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
                         </div>
-                        <div className="flex-shrink-0 px-2.5 py-1.5 rounded-[8px] border border-[var(--heart)] text-[var(--heart)] text-[10px] font-medium">
-                          Flag
-                        </div>
-                      </div>
-                      <div className="text-[9px] text-[var(--muted-foreground)] mt-2">
-                        {new Date(row.created_at).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
                       </div>
                     </div>
-                  ))
+                  );
+                })
               )}
             </div>
+            {totalConvoPages > 1 && (
+              <div className="flex items-center justify-center gap-2 px-4 py-3 border-t border-[var(--border)]">
+                <button
+                  onClick={() => setConvoPage(1)}
+                  disabled={convoPage === 1}
+                  className="px-2.5 py-1 rounded-[8px] text-xs border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  «
+                </button>
+                <button
+                  onClick={() => setConvoPage((p) => Math.max(1, p - 1))}
+                  disabled={convoPage === 1}
+                  className="px-2.5 py-1 rounded-[8px] text-xs border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  ‹
+                </button>
+                {Array.from({ length: totalConvoPages }, (_, i) => i + 1)
+                  .filter((p) =>
+                    p === 1 ||
+                    p === totalConvoPages ||
+                    Math.abs(p - convoPage) <= 1
+                  )
+                  .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((p, idx) =>
+                    p === "..." ? (
+                      <span key={`ellipsis-${idx}`} className="px-1 text-xs text-[var(--muted-foreground)]">…</span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => setConvoPage(p as number)}
+                        className={`px-2.5 py-1 rounded-[8px] text-xs font-medium transition-colors ${
+                          convoPage === p
+                            ? "bg-[var(--harmony)] text-white"
+                            : "border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)]"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                <button
+                  onClick={() => setConvoPage((p) => Math.min(totalConvoPages, p + 1))}
+                  disabled={convoPage === totalConvoPages}
+                  className="px-2.5 py-1 rounded-[8px] text-xs border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  ›
+                </button>
+                <button
+                  onClick={() => setConvoPage(totalConvoPages)}
+                  disabled={convoPage === totalConvoPages}
+                  className="px-2.5 py-1 rounded-[8px] text-xs border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  »
+                </button>
+              </div>
+            )}
           </div>
 
         </section>
@@ -1078,6 +1169,210 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                   {saving ? "Saving…" : "Save"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {previewConvo && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex justify-start"
+          onClick={() => setPreviewConvo(null)}
+        >
+          <div
+            className="w-full max-w-xl h-full bg-[var(--card)] shadow-elevated overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-[var(--card)] border-b border-[var(--border)] px-6 py-4 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-[var(--muted-foreground)] mb-1">
+                  {new Date(previewConvo.created_at).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </div>
+                <h2 className="text-base font-semibold text-[var(--harmony)] leading-snug">
+                  Conversation Review
+                </h2>
+              </div>
+              <button
+                onClick={() => setPreviewConvo(null)}
+                className="p-1.5 rounded-md hover:bg-[var(--clarity)]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+
+              <div>
+                <div className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
+                  Question
+                </div>
+                <p className="text-sm font-medium text-[var(--neutral-ink)] leading-relaxed">
+                  {previewConvo.user_message ?? "—"}
+                </p>
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
+                  Agent Response
+                </div>
+                <p className="text-sm text-[var(--neutral-ink)] leading-relaxed whitespace-pre-wrap">
+                  {previewConvo.agent_response ?? "—"}
+                </p>
+              </div>
+
+              {(previewConvo.knowledge_chunks_used ?? []).length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
+                    KB Entries Used
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(previewConvo.knowledge_chunks_used ?? []).map((chunk) => {
+                      const label = chunk.includes(": ")
+                        ? chunk.split(": ").slice(1).join(": ")
+                        : chunk;
+                      return (
+                        <span
+                          key={chunk}
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)]"
+                        >
+                          {label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-[var(--border)]">
+                <div className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-3">
+                  Review Status
+                </div>
+                {(() => {
+                  const status = (previewConvo as any).feedback as string | null;
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        {status === "verified" ? (
+                          <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5">
+                            <span>✓</span> Verified — response looks correct
+                          </span>
+                        ) : status === "needs_fix" ? (
+                          <span className="text-sm font-medium text-[var(--heart)] inline-flex items-center gap-1.5">
+                            <span>✗</span> Flagged — needs correction
+                          </span>
+                        ) : (
+                          <span className="text-sm text-[var(--muted-foreground)]">
+                            Not yet reviewed
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        {status !== "verified" && (
+                          <button
+                            disabled={flagging === previewConvo.id}
+                            onClick={async () => {
+                              setFlagging(previewConvo.id);
+                              try {
+                                await analyticsSupabase
+                                  .from("conversation_logs")
+                                  .update({ feedback: "verified", flagged_at: null, correction_note: null })
+                                  .eq("id", previewConvo.id);
+                                setPreviewConvo({ ...previewConvo, ...({"feedback": "verified"} as any) });
+                                setAnalyticsData((prev) =>
+                                  prev.map((r) =>
+                                    r.id === previewConvo.id
+                                      ? { ...r, ...({ feedback: "verified" } as any) }
+                                      : r
+                                  )
+                                );
+                                toast.success("Marked as verified");
+                              } catch {
+                                toast.error("Failed to update");
+                              } finally {
+                                setFlagging(null);
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-[8px] text-xs font-medium border border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950 disabled:opacity-50 transition-colors"
+                          >
+                            {flagging === previewConvo.id ? "Saving…" : "✓ Mark Verified"}
+                          </button>
+                        )}
+                        {status !== "needs_fix" && (
+                          <button
+                            disabled={flagging === previewConvo.id}
+                            onClick={async () => {
+                              setFlagging(previewConvo.id);
+                              try {
+                                await analyticsSupabase
+                                  .from("conversation_logs")
+                                  .update({
+                                    feedback: "needs_fix",
+                                    flagged_at: new Date().toISOString(),
+                                  })
+                                  .eq("id", previewConvo.id);
+                                setPreviewConvo({ ...previewConvo, ...({ feedback: "needs_fix" } as any) });
+                                setAnalyticsData((prev) =>
+                                  prev.map((r) =>
+                                    r.id === previewConvo.id
+                                      ? { ...r, ...({ feedback: "needs_fix" } as any) }
+                                      : r
+                                  )
+                                );
+                                toast.success("Flagged — add a correction note in the Review tab");
+                              } catch {
+                                toast.error("Failed to update");
+                              } finally {
+                                setFlagging(null);
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-[8px] text-xs font-medium border border-[var(--heart)] text-[var(--heart)] hover:bg-[var(--hunger-lite)] disabled:opacity-50 transition-colors"
+                          >
+                            {flagging === previewConvo.id ? "Saving…" : "✗ Flag for Review"}
+                          </button>
+                        )}
+                        {(status === "verified" || status === "needs_fix") && (
+                          <button
+                            disabled={flagging === previewConvo.id}
+                            onClick={async () => {
+                              setFlagging(previewConvo.id);
+                              try {
+                                await analyticsSupabase
+                                  .from("conversation_logs")
+                                  .update({
+                                    feedback: null,
+                                    flagged_at: null,
+                                    correction_note: null,
+                                  })
+                                  .eq("id", previewConvo.id);
+                                setPreviewConvo({ ...previewConvo, ...({ feedback: null } as any) });
+                                setAnalyticsData((prev) =>
+                                  prev.map((r) =>
+                                    r.id === previewConvo.id
+                                      ? { ...r, ...({ feedback: null } as any) }
+                                      : r
+                                  )
+                                );
+                                toast.success("Cleared — marked as unreviewed");
+                              } catch {
+                                toast.error("Failed to update");
+                              } finally {
+                                setFlagging(null);
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-[8px] text-xs font-medium border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--harmony)] hover:text-[var(--harmony)] disabled:opacity-50 transition-colors"
+                          >
+                            Unmark
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
             </div>
           </div>
         </div>
