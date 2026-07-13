@@ -227,6 +227,21 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!previewEntry) {
+      setSummary([]);
+      setSummaryLoading(false);
+      return;
+    }
+    setSummaryLoading(true);
+    setSummary([]);
+    summarize({ data: { content: previewEntry.content } })
+      .then((res) => setSummary(res.bullets ?? []))
+      .catch(() => setSummary([]))
+      .finally(() => setSummaryLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewEntry?.id]);
+
   const filteredAnalytics = useMemo(() => {
     if (dateRange === "All") return analyticsData;
     const days = dateRange === "7d" ? 7 : 30;
