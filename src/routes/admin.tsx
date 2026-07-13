@@ -180,6 +180,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [filterWeek, setFilterWeek] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [previewEntry, setPreviewEntry] = useState<Entry | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [missingCount, setMissingCount] = useState(0);
