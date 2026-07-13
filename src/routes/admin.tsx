@@ -667,9 +667,33 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                               <span>✗</span> Flagged
                             </span>
                           ) : (
-                            <span className="text-[10px] text-[var(--muted-foreground)]">
-                              Unreviewed
-                            </span>
+                            <button
+                              className="flex-shrink-0 px-2.5 py-1 rounded-[8px] border border-[var(--heart)] text-[var(--heart)] text-[10px] font-medium hover:bg-[var(--hunger-lite)] transition-colors"
+                              onClick={async (ev) => {
+                                ev.stopPropagation();
+                                try {
+                                  await analyticsSupabase
+                                    .from("conversation_logs")
+                                    .update({
+                                      feedback: "needs_fix",
+                                      flagged_at: new Date().toISOString(),
+                                    })
+                                    .eq("id", row.id);
+                                  setAnalyticsData((prev) =>
+                                    prev.map((r) =>
+                                      r.id === row.id
+                                        ? { ...r, ...({ feedback: "needs_fix" } as any) }
+                                        : r
+                                    )
+                                  );
+                                  toast.success("Flagged — add a correction note in the Review tab");
+                                } catch {
+                                  toast.error("Failed to flag");
+                                }
+                              }}
+                            >
+                              Flag
+                            </button>
                           )}
                           <span className="text-[9px] text-[var(--muted-foreground)]">
                             {new Date(row.created_at).toLocaleDateString("en-US", {
