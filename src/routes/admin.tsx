@@ -658,23 +658,19 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                 ))}
               </select>
             </div>
-            <div className="flex items-center gap-1.5">
-              {(["all", "featured", "not"] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setFilterFeatured(v)}
-                  className={`px-3 py-1.5 rounded-[8px] text-xs font-medium transition-colors ${
-                    filterFeatured === v
-                      ? "bg-[var(--harmony)] text-white"
-                      : "border border-[var(--harmony)] text-[var(--harmony)] bg-transparent hover:bg-[var(--harmony-lite)]"
-                  }`}
-                >
-                  {v === "all" ? "All" : v === "featured" ? "★ Featured" : "Not ★"}
-                </button>
-              ))}
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-[var(--muted-foreground)]">Featured</label>
+              <select
+                value={filterFeatured}
+                onChange={(e) => setFilterFeatured(e.target.value as "all" | "featured" | "not")}
+                className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)]"
+              >
+                <option value="all">All</option>
+                <option value="featured">★ Featured</option>
+                <option value="not">Not Featured</option>
+              </select>
             </div>
             <div className="relative flex-1 min-w-[200px]">
-
               <input
                 type="text"
                 placeholder="Search title, content, category, or tag..."
@@ -792,12 +788,20 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
-                          onClick={() => openEdit(e)}
+                          onClick={(ev) => { ev.stopPropagation(); openEdit(e); }}
                           className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--harmony)] hover:bg-[var(--harmony-lite)]"
                           aria-label="Edit"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        <button
+                          onClick={(ev) => { ev.stopPropagation(); remove(e.id); }}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--heart)] hover:bg-[var(--hunger-lite)] ml-1"
+                          aria-label="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+
                         <button
                           onClick={() => remove(e.id)}
                           className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--heart)] hover:bg-[var(--hunger-lite)] ml-1"
