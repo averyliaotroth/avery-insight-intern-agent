@@ -658,7 +658,11 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                   </tr>
                 ) : (
                   filtered.map((e) => (
-                    <tr key={e.id} className="border-t border-[var(--border)]">
+                    <tr
+                      key={e.id}
+                      onClick={() => setPreviewEntry(e)}
+                      className="border-t border-[var(--border)] cursor-pointer hover:bg-[var(--muted)] transition-colors"
+                    >
                       <td className="px-4 py-3 w-[160px]">
                         <span className={`${categoryPillClass(e.category)} text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap inline-block`}>
                           {e.category}
