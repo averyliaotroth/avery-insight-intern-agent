@@ -182,11 +182,14 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState<string>("All");
   const [filterWeek, setFilterWeek] = useState<string>("All");
+  const [filterFeatured, setFilterFeatured] = useState<"all" | "featured" | "not">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [previewEntry, setPreviewEntry] = useState<Entry | null>(null);
   const [summary, setSummary] = useState<string[]>([]);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [sortCol, setSortCol] = useState<"title" | "category" | "week" | "date" | "featured">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
@@ -342,19 +345,54 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     }
   }
 
-  const filtered = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    return entries.filter(
-      (e) =>
-        (filterCat === "All" || e.category === filterCat) &&
-        (filterWeek === "All" || String(e.week_number ?? "") === filterWeek) &&
-        (!q ||
-          e.title.toLowerCase().includes(q) ||
-          e.content.toLowerCase().includes(q) ||
-          e.category.toLowerCase().includes(q) ||
-          (e.tags ?? []).some((t) => t.toLowerCase().includes(q))),
-    );
-  }, [entries, filterCat, filterWeek, searchQuery]);
+    const filtered = useMemo(() => {
+      const q = searchQuery.toLowerCase().trim();
+      const result = entries.filter(
+          (e) =>
+            (filterCat === "All" || e.category === filterCat) &&
+            (filterWeek === "All" || String(e.week_number ?? "") === filterWeek) &&
+            (filterFeatured === "all" ||
+              (filterFeatured === "featured" && e.is_featured) ||
+              (filterFeatured === "not" && !e.is_featured)) &&
+            (!q ||
+              e.title.toLowerCase().includes(q) ||
+              e.content.toLowerCase().includes(q) ||
+              e.category.toLowerCase().includes(q) ||
+              (e.tags ?? []).some((t) => t.toLowerCase().includes(q))),
+        );
+        result.sort((a, b) => {
+          let valA: string | number;
+          let valB: string | number;
+          switch (sortCol) {
+            case "title":
+              valA = a.title.toLowerCase();
+              valB = b.title.toLowerCase();
+              break;
+            case "category":
+              valA = a.category.toLowerCase();
+              valB = b.category.toLowerCase();
+              break;
+            case "week":
+              valA = a.week_number ?? 999;
+              valB = b.week_number ?? 999;
+              break;
+            case "featured":
+              valA = a.is_featured ? 0 : 1;
+              valB = b.is_featured ? 0 : 1;
+              break;
+            case "date":
+            default:
+              valA = new Date(a.created_at).getTime();
+              valB = new Date(b.created_at).getTime();
+              break;
+          }
+          if (valA < valB) return sortDir === "asc" ? -1 : 1;
+          if (valA > valB) return sortDir === "asc" ? 1 : -1;
+          return 0;
+        });
+        return result;
+      }, [entries, filterCat, filterWeek, filterFeatured, searchQuery, sortCol, sortDir]);
+
 
   function openNew() {
     setForm(emptyForm());
@@ -606,6 +644,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                 ))}
               </select>
             </div>
+            
             <div className="flex items-center gap-2">
               <label className="text-xs font-medium text-[var(--muted-foreground)]">Week</label>
               <select
@@ -619,7 +658,23 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                 ))}
               </select>
             </div>
+            <div className="flex items-center gap-1.5">
+              {(["all", "featured", "not"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setFilterFeatured(v)}
+                  className={`px-3 py-1.5 rounded-[8px] text-xs font-medium transition-colors ${
+                    filterFeatured === v
+                      ? "bg-[var(--harmony)] text-white"
+                      : "border border-[var(--harmony)] text-[var(--harmony)] bg-transparent hover:bg-[var(--harmony-lite)]"
+                  }`}
+                >
+                  {v === "all" ? "All" : v === "featured" ? "★ Featured" : "Not ★"}
+                </button>
+              ))}
+            </div>
             <div className="relative flex-1 min-w-[200px]">
+
               <input
                 type="text"
                 placeholder="Search title, content, category, or tag..."
@@ -648,13 +703,41 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
 
           <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-[var(--muted)] text-left text-[var(--muted-foreground)]">
+                <thead className="bg-[var(--muted)] text-left text-[var(--muted-foreground)]">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Category</th>
-                  <th className="px-4 py-3 font-medium">Title</th>
-                  <th className="px-4 py-3 font-medium">Week</th>
-                  <th className="px-4 py-3 font-medium">Tags</th>
-                  <th className="px-4 py-3 font-medium">Featured</th>
+                  {([
+                    { label: "Category", col: "category" },
+                    { label: "Title",    col: "title"    },
+                    { label: "Week",     col: "week"     },
+                    { label: "Added",    col: "date"     },
+                    { label: "Featured", col: "featured" },
+                  ] as { label: string; col: typeof sortCol }[]).map(({ label, col }) => (
+                    <th
+                      key={col}
+                      onClick={() => {
+                        if (sortCol === col) {
+                          setSortDir(sortDir === "asc" ? "desc" : "asc");
+                        } else {
+                          setSortCol(col);
+                          setSortDir("asc");
+                        }
+                      }}
+                      className="px-4 py-3 font-medium cursor-pointer select-none group"
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        <span className={sortCol === col ? "text-[var(--harmony)]" : ""}>
+                          {label}
+                        </span>
+                        <span className={`text-[10px] transition-opacity ${
+                          sortCol === col
+                            ? "text-[var(--harmony)] opacity-100"
+                            : "opacity-0 group-hover:opacity-40"
+                        }`}>
+                          {sortCol === col ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+                        </span>
+                      </span>
+                    </th>
+                  ))}
                   <th className="px-4 py-3 font-medium text-right">Actions</th>
                 </tr>
               </thead>
@@ -695,7 +778,10 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                       </td>
                       <td className="px-4 py-3 text-[var(--muted-foreground)]">{e.week_number ?? "—"}</td>
                       <td className="px-4 py-3 text-[var(--muted-foreground)] text-xs">
-                        {e.tags?.join(", ") || "—"}
+                        {new Date(e.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
                       </td>
                       <td className="px-4 py-3">
                         {e.is_featured ? (
