@@ -185,7 +185,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [previewEntry, setPreviewEntry] = useState<Entry | null>(null);
-  const [summary, setSummary] = useState([]);
+  const [summary, setSummary] = useState<string[]>([]);
   const [summaryLoading, setSummaryLoading] = useState(false);
 
   const [form, setForm] = useState<FormState>(emptyForm());
