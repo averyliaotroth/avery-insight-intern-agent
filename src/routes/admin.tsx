@@ -832,7 +832,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
 
       {previewEntry && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 flex justify-end"
+          className="fixed inset-0 z-50 bg-black/40 flex justify-start"
           onClick={() => setPreviewEntry(null)}
         >
           <div
