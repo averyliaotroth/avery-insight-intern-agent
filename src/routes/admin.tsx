@@ -602,6 +602,59 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
               )}
             </div>
           </div>
+
+          <div className="bg-[var(--card)] rounded-[12px] shadow-card overflow-hidden mt-4">
+            <div className="px-4 py-3 border-b border-[var(--border)]">
+              <div className="text-sm font-semibold text-[var(--harmony)]">
+                Recent Conversations
+              </div>
+              <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                Flag any response that contains incorrect information.
+              </p>
+            </div>
+            <div className="divide-y divide-[var(--border)]">
+              {analyticsLoading ? (
+                <div className="px-4 py-6 text-center text-sm text-[var(--muted-foreground)]">
+                  Loading…
+                </div>
+              ) : filteredAnalytics.length === 0 ? (
+                <div className="px-4 py-6 text-center text-sm text-[var(--muted-foreground)]">
+                  No conversations yet.
+                </div>
+              ) : (
+                [...filteredAnalytics]
+                  .sort((a, b) =>
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+                  )
+                  .slice(0, 20)
+                  .map((row) => (
+                    <div key={row.id} className="px-4 py-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-[var(--neutral-ink)] truncate">
+                            {row.user_message ?? "—"}
+                          </p>
+                          <p className="text-xs text-[var(--muted-foreground)] mt-1 line-clamp-2 leading-relaxed">
+                            {row.agent_response ?? "—"}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0 px-2.5 py-1.5 rounded-[8px] border border-[var(--heart)] text-[var(--heart)] text-[10px] font-medium">
+                          Flag
+                        </div>
+                      </div>
+                      <div className="text-[9px] text-[var(--muted-foreground)] mt-2">
+                        {new Date(row.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </div>
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
+
         </section>
       )}
 
