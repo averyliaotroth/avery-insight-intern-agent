@@ -170,6 +170,8 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const del = useServerFn(deleteEntry);
   const backfill = useServerFn(backfillEmbeddings);
   const countMissing = useServerFn(countMissingEmbeddings);
+  const summarize = useServerFn(summarizeEntry);
+
 
   // ← NEW: tab state lives here, in KnowledgeManager
   const [activeTab, setActiveTab] = useState<"kb" | "analytics">("kb");
@@ -181,6 +183,9 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [previewEntry, setPreviewEntry] = useState<Entry | null>(null);
+  const [summary, setSummary] = useState([]);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [missingCount, setMissingCount] = useState(0);
