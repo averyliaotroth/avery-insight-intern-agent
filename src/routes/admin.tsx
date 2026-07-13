@@ -881,11 +881,33 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
               ) : null}
               <div>
                 <div className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
-                  Content
+                  AI Summary
                 </div>
-                <p className="text-sm text-[var(--neutral-ink)] leading-relaxed whitespace-pre-wrap">
-                  {previewEntry.content}
-                </p>
+                {summaryLoading ? (
+                  <div className="space-y-2">
+                    {[90, 75, 85, 65].map((w, i) => (
+                      <div
+                        key={i}
+                        className="h-3 rounded bg-[var(--muted)] animate-pulse"
+                        style={{ width: `${w}%` }}
+                      />
+                    ))}
+                  </div>
+                ) : summary.length > 0 ? (
+                  <ul className="list-disc list-inside text-sm text-[var(--neutral-ink)] leading-relaxed space-y-1">
+                    {summary.map((bullet, i) => (
+                      <li key={i} className="pl-1">
+                        <span className="text-[var(--neutral-ink)]">
+                          {bullet.replace(/^[-•*]\s*/, "")}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-[var(--neutral-ink)] leading-relaxed whitespace-pre-wrap">
+                    No summary available.
+                  </p>
+                )}
               </div>
             </div>
           </div>
