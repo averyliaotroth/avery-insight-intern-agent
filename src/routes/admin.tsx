@@ -830,6 +830,68 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
+      {previewEntry && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex justify-end"
+          onClick={() => setPreviewEntry(null)}
+        >
+          <div
+            className="w-full max-w-xl h-full bg-[var(--card)] shadow-elevated overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-[var(--card)] border-b border-[var(--border)] px-6 py-4 flex items-center justify-between">
+              <div>
+                <span className={`${categoryPillClass(previewEntry.category)} text-[10px] font-medium px-2 py-0.5 rounded-full inline-block mb-2`}>
+                  {previewEntry.category}
+                </span>
+                <h2 className="text-lg font-semibold text-[var(--harmony)]">
+                  {previewEntry.title}
+                </h2>
+              </div>
+              <button
+                onClick={() => setPreviewEntry(null)}
+                className="p-1.5 rounded-md hover:bg-[var(--clarity)]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-5">
+              <div className="flex gap-4 text-sm text-[var(--muted-foreground)]">
+                <span>Week: {previewEntry.week_number ?? "—"}</span>
+                <span>Featured: {previewEntry.is_featured ? "★ Yes" : "No"}</span>
+              </div>
+              {previewEntry.tags?.length ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {previewEntry.tags.map((t) => (
+                    <span key={t} className="bg-[var(--vision)] text-white text-[11px] px-2 py-0.5 rounded-full">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              {(previewEntry as any).question ? (
+                <div>
+                  <div className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-1">
+                    Follow-up Question
+                  </div>
+                  <p className="text-sm text-[var(--neutral-ink)] italic">
+                    {(previewEntry as any).question}
+                  </p>
+                </div>
+              ) : null}
+              <div>
+                <div className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
+                  Content
+                </div>
+                <p className="text-sm text-[var(--neutral-ink)] leading-relaxed whitespace-pre-wrap">
+                  {previewEntry.content}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
