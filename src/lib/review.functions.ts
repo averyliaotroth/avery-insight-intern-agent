@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const FlagInput = z.object({
   id: z.string().uuid(),
-  feedback: z.enum(["correct", "needs_fix"]),
+  feedback: z.enum(["correct", "needs_fix", "verified"]),
   correction_note: z.string().optional(),
 });
 
