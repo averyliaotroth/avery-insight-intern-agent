@@ -185,10 +185,13 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const backfill = useServerFn(backfillEmbeddings);
   const countMissing = useServerFn(countMissingEmbeddings);
   const summarize = useServerFn(summarizeEntry);
+  const flag = useServerFn(flagConversation);
+  const updateNote = useServerFn(updateCorrectionNote);
+  const resolve = useServerFn(resolveFlag);
 
 
   // ← NEW: tab state lives here, in KnowledgeManager
-  const [activeTab, setActiveTab] = useState<"kb" | "analytics">("kb");
+  const [activeTab, setActiveTab] = useState<"kb" | "analytics" | "review">("kb");
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
