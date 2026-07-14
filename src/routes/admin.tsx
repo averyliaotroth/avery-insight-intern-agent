@@ -219,6 +219,11 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [convoPage, setConvoPage] = useState(1);
   const CONVO_PAGE_SIZE = 10;
   const [flagging, setFlagging] = useState<string | null>(null);
+  const [reviewData, setReviewData] = useState<ReviewRow[]>([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteInput, setNoteInput] = useState("");
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   async function refresh() {
     setLoading(true);
