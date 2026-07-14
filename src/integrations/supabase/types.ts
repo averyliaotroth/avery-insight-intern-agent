@@ -17,7 +17,10 @@ export type Database = {
       conversation_logs: {
         Row: {
           agent_response: string | null
+          correction_note: string | null
           created_at: string
+          feedback: string | null
+          flagged_at: string | null
           id: string
           knowledge_chunks_used: string[] | null
           session_id: string | null
@@ -25,7 +28,10 @@ export type Database = {
         }
         Insert: {
           agent_response?: string | null
+          correction_note?: string | null
           created_at?: string
+          feedback?: string | null
+          flagged_at?: string | null
           id?: string
           knowledge_chunks_used?: string[] | null
           session_id?: string | null
@@ -33,7 +39,10 @@ export type Database = {
         }
         Update: {
           agent_response?: string | null
+          correction_note?: string | null
           created_at?: string
+          feedback?: string | null
+          flagged_at?: string | null
           id?: string
           knowledge_chunks_used?: string[] | null
           session_id?: string | null
