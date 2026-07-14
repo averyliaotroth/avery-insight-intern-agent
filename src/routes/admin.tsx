@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import { listEntries, upsertEntry, deleteEntry } from "@/lib/knowledge.functions";
 import { backfillEmbeddings, countMissingEmbeddings } from "@/lib/backfill";
 import { summarizeEntry } from "@/lib/summarize.functions";
+import { flagConversation, updateCorrectionNote, resolveFlag } from "@/lib/review.functions";
 
 
 const analyticsSupabase = createClient(
