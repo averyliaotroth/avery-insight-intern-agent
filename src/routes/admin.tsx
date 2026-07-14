@@ -24,6 +24,17 @@ type AnalyticsRow = {
   agent_response: string | null;
 };
 
+type ReviewRow = {
+  id: string;
+  session_id: string | null;
+  user_message: string | null;
+  agent_response: string | null;
+  knowledge_chunks_used: string[] | null;
+  created_at: string;
+  feedback: string | null;
+  correction_note: string | null;
+  flagged_at: string | null;
+};
 type DateRange = "7d" | "30d" | "All";
 
 export const Route = createFileRoute("/admin")({
