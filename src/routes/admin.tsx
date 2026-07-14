@@ -568,6 +568,188 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
         </button>
       </div>
 
+      {/* ── REVIEW TAB ── */}
+      {activeTab === "review" && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--heart)]">Correction Queue</h2>
+              <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                Flagged responses that need KB entry corrections.
+              </p>
+            </div>
+            <button
+              onClick={loadReview}
+              className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)] hover:border-[var(--harmony)] transition-colors"
+            >
+              Refresh
+            </button>
+          </div>
+
+          {reviewLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-[12px] border border-[var(--border)] p-4 animate-pulse">
+                  <div className="h-4 w-1/3 bg-[var(--muted)] rounded mb-3" />
+                  <div className="h-3 w-full bg-[var(--muted)] rounded mb-2" />
+                  <div className="h-3 w-2/3 bg-[var(--muted)] rounded" />
+                </div>
+              ))}
+            </div>
+          ) : reviewData.length === 0 ? (
+            <div className="rounded-[12px] border border-dashed border-[var(--border)] p-10 text-center">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--harmony-lite)] text-[var(--harmony)] text-lg font-semibold mb-3">✓</div>
+              <p className="text-sm font-medium text-[var(--neutral-ink)]">
+                No flagged responses
+              </p>
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                Flag responses from the Analytics tab when you spot incorrect information.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {reviewData.map((row) => (
+                <div key={row.id} className="rounded-[12px] border border-[var(--border)] bg-[var(--card)] p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] mb-1">
+                          User asked
+                        </p>
+                        <p className="text-sm text-[var(--neutral-ink)]">
+                          {row.user_message ?? "—"}
+                        </p>
+                      </div>
+                      <span className="text-xs text-[var(--muted-foreground)] whitespace-nowrap">
+                        {row.flagged_at
+                          ? new Date(row.flagged_at).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "—"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] mb-1">
+                        Agent responded
+                      </p>
+                      <p className="text-sm text-[var(--neutral-ink)] whitespace-pre-wrap">
+                        {row.agent_response ?? "—"}
+                      </p>
+                    </div>
+
+                    {(row.knowledge_chunks_used ?? []).length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] mb-1">
+                          KB entries used
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(row.knowledge_chunks_used ?? []).map((chunk, idx) => {
+                            const label = chunk.includes(": ")
+                              ? chunk.split(": ").slice(1).join(": ")
+                              : chunk;
+                            return (
+                              <span key={idx} className="px-2 py-0.5 rounded-full bg-[var(--muted)] text-[11px] text-[var(--neutral-ink)]">
+                                {label}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] mb-1">
+                        Your correction note
+                      </p>
+                      {editingNoteId === row.id ? (
+                        <div className="space-y-2">
+                          <textarea
+                            rows={3}
+                            value={noteInput}
+                            onChange={(e) => setNoteInput(e.target.value)}
+                            placeholder="Describe what is wrong and what the correct information is..."
+                            className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)] resize-none focus:outline-none focus:border-[var(--harmony)]"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await updateNote({
+                                    data: { id: row.id, correction_note: noteInput },
+                                  });
+                                  setEditingNoteId(null);
+                                  await loadReview();
+                                  toast.success("Note saved");
+                                } catch {
+                                  toast.error("Failed to save note");
+                                }
+                              }}
+                              className="px-3 py-1.5 rounded-[8px] bg-insight-gradient text-white text-xs font-medium"
+                            >
+                              Save note
+                            </button>
+                            <button
+                              onClick={() => setEditingNoteId(null)}
+                              className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-xs text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)]"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => {
+                            setEditingNoteId(row.id);
+                            setNoteInput(row.correction_note ?? "");
+                          }}
+                          className="min-h-[60px] px-3 py-2 rounded-[8px] border border-dashed border-[var(--border)] text-sm cursor-pointer hover:border-[var(--harmony)] transition-colors"
+                        >
+                          {row.correction_note ? (
+                            <p className="text-[var(--neutral-ink)]">
+                              {row.correction_note}
+                            </p>
+                          ) : (
+                            <p className="text-[var(--muted-foreground)] italic">
+                              Click to add a correction note...
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
+                      <p className="text-xs text-[var(--muted-foreground)]">
+                        Go to the KB tab to find and edit the relevant entry using your note above.
+                      </p>
+                      <button
+                        disabled={resolvingId === row.id}
+                        onClick={async () => {
+                          setResolvingId(row.id);
+                          try {
+                            await resolve({ data: { id: row.id } });
+                            await loadReview();
+                            toast.success("Marked as resolved");
+                          } catch {
+                            toast.error("Failed to resolve");
+                          } finally {
+                            setResolvingId(null);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-[8px] border border-[var(--harmony)] text-[var(--harmony)] text-xs font-medium hover:bg-[var(--harmony-lite)] disabled:opacity-50 transition-colors whitespace-nowrap ml-4"
+                      >
+                        {resolvingId === row.id ? "Resolving…" : "Mark resolved"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ── ANALYTICS TAB ── */}
       {activeTab === "analytics" && (
         <section className="mb-8">
