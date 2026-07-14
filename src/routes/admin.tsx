@@ -243,6 +243,22 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     }
   }
 
+  async function loadReview() {
+    setReviewLoading(true);
+    try {
+      const { data, error } = await analyticsSupabase
+        .from("conversation_logs")
+        .select("id, session_id, user_message, agent_response, knowledge_chunks_used, created_at, feedback, correction_note, flagged_at")
+        .eq("feedback", "needs_fix")
+        .order("flagged_at", { ascending: false });
+      if (!error && data) setReviewData(data as ReviewRow[]);
+    } catch {
+      // silent
+    } finally {
+      setReviewLoading(false);
+    }
+  }
+
   async function loadAnalytics() {
     setAnalyticsLoading(true);
     try {
@@ -260,6 +276,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     refresh();
     loadAnalytics();
+    loadReview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
