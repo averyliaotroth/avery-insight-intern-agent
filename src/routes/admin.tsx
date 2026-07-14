@@ -551,6 +551,21 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
         >
           Analytics
         </button>
+        <button
+          onClick={() => { setActiveTab("review"); loadReview(); }}
+          className={`px-4 py-2 rounded-[8px] text-sm font-medium transition-colors inline-flex items-center gap-2 ${
+            activeTab === "review"
+              ? "bg-[var(--heart)] text-white"
+              : "border border-[var(--heart)] text-[var(--heart)] bg-transparent hover:bg-[var(--hunger-lite)]"
+          }`}
+        >
+          Review
+          {reviewData.length > 0 && (
+            <span className={`inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full text-[11px] font-semibold ${activeTab === "review" ? "bg-white/20 text-white" : "bg-[var(--heart)] text-white"}`}>
+              {reviewData.length}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* ── ANALYTICS TAB ── */}
