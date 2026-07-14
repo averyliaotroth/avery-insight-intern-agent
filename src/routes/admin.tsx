@@ -8,6 +8,8 @@ import { listEntries, upsertEntry, deleteEntry } from "@/lib/knowledge.functions
 import { backfillEmbeddings, countMissingEmbeddings } from "@/lib/backfill";
 import { summarizeEntry } from "@/lib/summarize.functions";
 import { flagConversation, updateCorrectionNote, resolveFlag } from "@/lib/review.functions";
+import { correctKBEntry } from "@/lib/correct.functions";
+
 
 
 const analyticsSupabase = createClient(
@@ -188,6 +190,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const flag = useServerFn(flagConversation);
   const updateNote = useServerFn(updateCorrectionNote);
   const resolve = useServerFn(resolveFlag);
+  const correct = useServerFn(correctKBEntry);
 
 
   // ← NEW: tab state lives here, in KnowledgeManager
@@ -214,7 +217,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [backfilling, setBackfilling] = useState(false);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsRow[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
-    const [dateRange, setDateRange] = useState<DateRange>("30d");
+  const [dateRange, setDateRange] = useState<DateRange>("30d");
   const [previewConvo, setPreviewConvo] = useState<AnalyticsRow | null>(null);
   const [convoPage, setConvoPage] = useState(1);
   const CONVO_PAGE_SIZE = 10;
@@ -224,6 +227,16 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteInput, setNoteInput] = useState("");
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+
+  const [correctingId, setCorrectingId] = useState<string | null>(null);
+  const [diffData, setDiffData] = useState<{
+    rowId: string;
+    entryId: string;
+    originalContent: string;
+    correctedContent: string;
+  } | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
 
   async function refresh() {
     setLoading(true);
