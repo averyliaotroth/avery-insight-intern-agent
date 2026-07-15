@@ -177,7 +177,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
 
 
   // ← NEW: tab state lives here, in KnowledgeManager
-  const [activeTab, setActiveTab] = useState<"kb" | "analytics" | "review">("kb");
+  const [activeTab, setActiveTab] = useState<"kb" | "analytics">("kb");
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -224,21 +224,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     }
   }
 
-  async function loadReview() {
-    setReviewLoading(true);
-    try {
-      const { data, error } = await analyticsSupabase
-        .from("conversation_logs")
-        .select("id, session_id, user_message, agent_response, knowledge_chunks_used, created_at, feedback, correction_note, flagged_at")
-        .eq("feedback", "needs_fix")
-        .order("flagged_at", { ascending: false });
-      if (!error && data) setReviewData(data as ReviewRow[]);
-    } catch {
-      // silent
-    } finally {
-      setReviewLoading(false);
-    }
-  }
 
   async function loadAnalytics() {
     setAnalyticsLoading(true);
@@ -257,7 +242,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     refresh();
     loadAnalytics();
-    loadReview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -531,21 +515,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
           }`}
         >
           Analytics
-        </button>
-        <button
-          onClick={() => { setActiveTab("review"); loadReview(); }}
-          className={`px-4 py-2 rounded-[8px] text-sm font-medium transition-colors inline-flex items-center gap-2 ${
-            activeTab === "review"
-              ? "bg-[var(--heart)] text-white"
-              : "border border-[var(--heart)] text-[var(--heart)] bg-transparent hover:bg-[var(--hunger-lite)]"
-          }`}
-        >
-          Review
-          {reviewData.length > 0 && (
-            <span className={`inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full text-[11px] font-semibold ${activeTab === "review" ? "bg-white/20 text-white" : "bg-[var(--heart)] text-white"}`}>
-              {reviewData.length}
-            </span>
-          )}
         </button>
       </div>
 
