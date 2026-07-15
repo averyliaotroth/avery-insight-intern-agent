@@ -732,6 +732,121 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                       )}
                     </div>
 
+                    <div className="space-y-2 pt-3">
+                      <label className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] font-medium">
+                        Fix a KB entry
+                      </label>
+                      <select
+                        value={diffData?.rowId === row.id ? diffData.entryId : (selectedEntryId ?? "")}
+                        onChange={(e) => setSelectedEntryId(e.target.value || null)}
+                        className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)]"
+                      >
+                        <option value="">Select an entry to fix...</option>
+                        {entries.map((e) => (
+                          <option key={e.id} value={e.id}>{e.title}</option>
+                        ))}
+                      </select>
+                      <button
+                        disabled={!selectedEntryId || correctingId === row.id}
+                        onClick={async () => {
+                          if (!selectedEntryId) return;
+                          const selectedEntry = entries.find((x) => x.id === selectedEntryId);
+                          if (!selectedEntry) return;
+                          setCorrectingId(row.id);
+                          try {
+                            const result = await correct({
+                              data: {
+                                entryId: selectedEntryId,
+                                userMessage: row.user_message ?? "",
+                                agentResponse: row.agent_response ?? "",
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                              } as any,
+                            });
+                            setDiffData({
+                              rowId: row.id,
+                              entryId: selectedEntryId,
+                              originalContent: selectedEntry.content,
+                              correctedContent: result.correctedContent ?? "",
+                            });
+                          } catch {
+                            toast.error("Failed to generate AI fix");
+                          } finally {
+                            setCorrectingId(null);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-[8px] bg-insight-gradient text-white text-xs font-medium disabled:opacity-50"
+                      >
+                        {correctingId === row.id ? "Applying..." : "Apply AI Fix"}
+                      </button>
+                      {diffData && diffData.rowId === row.id && (
+                        <div className="space-y-2 pt-2">
+                          <div>
+                            <div className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] font-medium mb-1">
+                              Before
+                            </div>
+                            <textarea
+                              readOnly
+                              rows={5}
+                              value={diffData.originalContent}
+                              className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--muted)] text-[var(--neutral-ink)] resize-none"
+                            />
+                          </div>
+                          <div>
+                            <div className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] font-medium mb-1">
+                              After
+                            </div>
+                            <textarea
+                              readOnly
+                              rows={5}
+                              value={diffData.correctedContent}
+                              className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--muted)] text-[var(--neutral-ink)] resize-none"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              disabled={approvingId === row.id}
+                              onClick={async () => {
+                                setApprovingId(row.id);
+                                try {
+                                  await upsert({
+                                    data: {
+                                      password: "insight2026",
+                                      id: diffData.entryId,
+                                      content: diffData.correctedContent,
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    } as any,
+                                  });
+                                  await resolve({ data: { id: row.id } });
+                                  setDiffData(null);
+                                  setSelectedEntryId(null);
+                                  await loadReview();
+                                  await refresh();
+                                  toast.success("KB entry updated and resolved");
+                                } catch {
+                                  toast.error("Failed to apply fix");
+                                } finally {
+                                  setApprovingId(null);
+                                }
+                              }}
+                              className="border border-[var(--harmony)] text-[var(--harmony)] text-xs rounded-[8px] px-3 py-1.5 hover:bg-[var(--harmony-lite)] disabled:opacity-50"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => {
+                                setDiffData(null);
+                                setSelectedEntryId(null);
+                                toast("AI fix rejected — no changes made");
+                              }}
+                              className="border border-[var(--border)] text-[var(--muted-foreground)] text-xs rounded-[8px] px-3 py-1.5 hover:text-[var(--neutral-ink)]"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
                       <p className="text-xs text-[var(--muted-foreground)]">
                         Go to the KB tab to find and edit the relevant entry using your note above.
