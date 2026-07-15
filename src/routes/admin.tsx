@@ -7,8 +7,6 @@ import { createClient } from "@supabase/supabase-js";
 import { listEntries, upsertEntry, deleteEntry } from "@/lib/knowledge.functions";
 import { backfillEmbeddings, countMissingEmbeddings } from "@/lib/backfill";
 import { summarizeEntry } from "@/lib/summarize.functions";
-import { flagConversation, updateCorrectionNote, resolveFlag } from "@/lib/review.functions";
-import { correctKBEntry } from "@/lib/correct.functions";
 
 
 
@@ -26,17 +24,6 @@ type AnalyticsRow = {
   agent_response: string | null;
 };
 
-type ReviewRow = {
-  id: string;
-  session_id: string | null;
-  user_message: string | null;
-  agent_response: string | null;
-  knowledge_chunks_used: string[] | null;
-  created_at: string;
-  feedback: string | null;
-  correction_note: string | null;
-  flagged_at: string | null;
-};
 type DateRange = "7d" | "30d" | "All";
 
 export const Route = createFileRoute("/admin")({
@@ -187,14 +174,10 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const backfill = useServerFn(backfillEmbeddings);
   const countMissing = useServerFn(countMissingEmbeddings);
   const summarize = useServerFn(summarizeEntry);
-  const flag = useServerFn(flagConversation);
-  const updateNote = useServerFn(updateCorrectionNote);
-  const resolve = useServerFn(resolveFlag);
-  const correct = useServerFn(correctKBEntry);
 
 
   // ← NEW: tab state lives here, in KnowledgeManager
-  const [activeTab, setActiveTab] = useState<"kb" | "analytics" | "review">("kb");
+  const [activeTab, setActiveTab] = useState<"kb" | "analytics">("kb");
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -222,21 +205,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [convoPage, setConvoPage] = useState(1);
   const CONVO_PAGE_SIZE = 10;
   const [flagging, setFlagging] = useState<string | null>(null);
-  const [reviewData, setReviewData] = useState<ReviewRow[]>([]);
-  const [reviewLoading, setReviewLoading] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [noteInput, setNoteInput] = useState("");
-  const [resolvingId, setResolvingId] = useState<string | null>(null);
-
-  const [correctingId, setCorrectingId] = useState<string | null>(null);
-  const [diffData, setDiffData] = useState<{
-    rowId: string;
-    entryId: string;
-    originalContent: string;
-    correctedContent: string;
-  } | null>(null);
-  const [approvingId, setApprovingId] = useState<string | null>(null);
-  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
 
   async function refresh() {
     setLoading(true);
@@ -256,21 +224,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
     }
   }
 
-  async function loadReview() {
-    setReviewLoading(true);
-    try {
-      const { data, error } = await analyticsSupabase
-        .from("conversation_logs")
-        .select("id, session_id, user_message, agent_response, knowledge_chunks_used, created_at, feedback, correction_note, flagged_at")
-        .eq("feedback", "needs_fix")
-        .order("flagged_at", { ascending: false });
-      if (!error && data) setReviewData(data as ReviewRow[]);
-    } catch {
-      // silent
-    } finally {
-      setReviewLoading(false);
-    }
-  }
 
   async function loadAnalytics() {
     setAnalyticsLoading(true);
@@ -289,7 +242,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     refresh();
     loadAnalytics();
-    loadReview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -564,319 +516,8 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
         >
           Analytics
         </button>
-        <button
-          onClick={() => { setActiveTab("review"); loadReview(); }}
-          className={`px-4 py-2 rounded-[8px] text-sm font-medium transition-colors inline-flex items-center gap-2 ${
-            activeTab === "review"
-              ? "bg-[var(--heart)] text-white"
-              : "border border-[var(--heart)] text-[var(--heart)] bg-transparent hover:bg-[var(--hunger-lite)]"
-          }`}
-        >
-          Review
-          {reviewData.length > 0 && (
-            <span className={`inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full text-[11px] font-semibold ${activeTab === "review" ? "bg-white/20 text-white" : "bg-[var(--heart)] text-white"}`}>
-              {reviewData.length}
-            </span>
-          )}
-        </button>
       </div>
 
-      {/* ── REVIEW TAB ── */}
-      {activeTab === "review" && (
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-[var(--heart)]">Correction Queue</h2>
-              <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                Flagged responses that need KB entry corrections.
-              </p>
-            </div>
-            <button
-              onClick={loadReview}
-              className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-sm text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)] hover:border-[var(--harmony)] transition-colors"
-            >
-              Refresh
-            </button>
-          </div>
-
-          {reviewLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="rounded-[12px] border border-[var(--border)] p-4 animate-pulse">
-                  <div className="h-4 w-1/3 bg-[var(--muted)] rounded mb-3" />
-                  <div className="h-3 w-full bg-[var(--muted)] rounded mb-2" />
-                  <div className="h-3 w-2/3 bg-[var(--muted)] rounded" />
-                </div>
-              ))}
-            </div>
-          ) : reviewData.length === 0 ? (
-            <div className="rounded-[12px] border border-dashed border-[var(--border)] p-10 text-center">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--harmony-lite)] text-[var(--harmony)] text-lg font-semibold mb-3">✓</div>
-              <p className="text-sm font-medium text-[var(--neutral-ink)]">
-                No flagged responses
-              </p>
-              <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                Flag responses from the Analytics tab when you spot incorrect information.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {reviewData.map((row) => (
-                <div key={row.id} className="rounded-[12px] border border-[var(--border)] bg-[var(--card)] p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] mb-1">
-                          User asked
-                        </p>
-                        <p className="text-sm text-[var(--neutral-ink)]">
-                          {row.user_message ?? "—"}
-                        </p>
-                      </div>
-                      <span className="text-xs text-[var(--muted-foreground)] whitespace-nowrap">
-                        {row.flagged_at
-                          ? new Date(row.flagged_at).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })
-                          : "—"}
-                      </span>
-                    </div>
-
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] mb-1">
-                        Agent responded
-                      </p>
-                      <p className="text-sm text-[var(--neutral-ink)] whitespace-pre-wrap">
-                        {row.agent_response ?? "—"}
-                      </p>
-                    </div>
-
-                    {(row.knowledge_chunks_used ?? []).length > 0 && (
-                      <div>
-                        <p className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] mb-1">
-                          KB entries used
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {(row.knowledge_chunks_used ?? []).map((chunk, idx) => {
-                            const label = chunk.includes(": ")
-                              ? chunk.split(": ").slice(1).join(": ")
-                              : chunk;
-                            return (
-                              <span key={idx} className="px-2 py-0.5 rounded-full bg-[var(--muted)] text-[11px] text-[var(--neutral-ink)]">
-                                {label}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] mb-1">
-                        Your correction note
-                      </p>
-                      {editingNoteId === row.id ? (
-                        <div className="space-y-2">
-                          <textarea
-                            rows={3}
-                            value={noteInput}
-                            onChange={(e) => setNoteInput(e.target.value)}
-                            placeholder="Describe what is wrong and what the correct information is..."
-                            className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)] resize-none focus:outline-none focus:border-[var(--harmony)]"
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await updateNote({
-                                    data: { id: row.id, correction_note: noteInput },
-                                  });
-                                  setEditingNoteId(null);
-                                  await loadReview();
-                                  toast.success("Note saved");
-                                } catch {
-                                  toast.error("Failed to save note");
-                                }
-                              }}
-                              className="px-3 py-1.5 rounded-[8px] bg-insight-gradient text-white text-xs font-medium"
-                            >
-                              Save note
-                            </button>
-                            <button
-                              onClick={() => setEditingNoteId(null)}
-                              className="px-3 py-1.5 rounded-[8px] border border-[var(--border)] text-xs text-[var(--muted-foreground)] hover:text-[var(--neutral-ink)]"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          onClick={() => {
-                            setEditingNoteId(row.id);
-                            setNoteInput(row.correction_note ?? "");
-                          }}
-                          className="min-h-[60px] px-3 py-2 rounded-[8px] border border-dashed border-[var(--border)] text-sm cursor-pointer hover:border-[var(--harmony)] transition-colors"
-                        >
-                          {row.correction_note ? (
-                            <p className="text-[var(--neutral-ink)]">
-                              {row.correction_note}
-                            </p>
-                          ) : (
-                            <p className="text-[var(--muted-foreground)] italic">
-                              Click to add a correction note...
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 pt-3">
-                      <label className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] font-medium">
-                        Fix a KB entry
-                      </label>
-                      <select
-                        value={diffData?.rowId === row.id ? diffData.entryId : (selectedEntryId ?? "")}
-                        onChange={(e) => setSelectedEntryId(e.target.value || null)}
-                        className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--card)] text-[var(--foreground)]"
-                      >
-                        <option value="">Select an entry to fix...</option>
-                        {entries.map((e) => (
-                          <option key={e.id} value={e.id}>{e.title}</option>
-                        ))}
-                      </select>
-                      <button
-                        disabled={!selectedEntryId || correctingId === row.id}
-                        onClick={async () => {
-                          if (!selectedEntryId) return;
-                          const selectedEntry = entries.find((x) => x.id === selectedEntryId);
-                          if (!selectedEntry) return;
-                          setCorrectingId(row.id);
-                          try {
-                            const result = await correct({
-                              data: {
-                                entryId: selectedEntryId,
-                                userMessage: row.user_message ?? "",
-                                agentResponse: row.agent_response ?? "",
-                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                              } as any,
-                            });
-                            setDiffData({
-                              rowId: row.id,
-                              entryId: selectedEntryId,
-                              originalContent: selectedEntry.content,
-                              correctedContent: result.correctedContent ?? "",
-                            });
-                          } catch {
-                            toast.error("Failed to generate AI fix");
-                          } finally {
-                            setCorrectingId(null);
-                          }
-                        }}
-                        className="px-3 py-1.5 rounded-[8px] bg-insight-gradient text-white text-xs font-medium disabled:opacity-50"
-                      >
-                        {correctingId === row.id ? "Applying..." : "Apply AI Fix"}
-                      </button>
-                      {diffData && diffData.rowId === row.id && (
-                        <div className="space-y-2 pt-2">
-                          <div>
-                            <div className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] font-medium mb-1">
-                              Before
-                            </div>
-                            <textarea
-                              readOnly
-                              rows={5}
-                              value={diffData.originalContent}
-                              className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--muted)] text-[var(--neutral-ink)] resize-none"
-                            />
-                          </div>
-                          <div>
-                            <div className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] font-medium mb-1">
-                              After
-                            </div>
-                            <textarea
-                              readOnly
-                              rows={5}
-                              value={diffData.correctedContent}
-                              className="w-full px-3 py-2 rounded-[8px] border border-[var(--border)] text-sm bg-[var(--muted)] text-[var(--neutral-ink)] resize-none"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              disabled={approvingId === row.id}
-                              onClick={async () => {
-                                setApprovingId(row.id);
-                                try {
-                                  await upsert({
-                                    data: {
-                                      password: "insight2026",
-                                      id: diffData.entryId,
-                                      content: diffData.correctedContent,
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    } as any,
-                                  });
-                                  await resolve({ data: { id: row.id } });
-                                  setDiffData(null);
-                                  setSelectedEntryId(null);
-                                  await loadReview();
-                                  await refresh();
-                                  toast.success("KB entry updated and resolved");
-                                } catch {
-                                  toast.error("Failed to apply fix");
-                                } finally {
-                                  setApprovingId(null);
-                                }
-                              }}
-                              className="border border-[var(--harmony)] text-[var(--harmony)] text-xs rounded-[8px] px-3 py-1.5 hover:bg-[var(--harmony-lite)] disabled:opacity-50"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => {
-                                setDiffData(null);
-                                setSelectedEntryId(null);
-                                toast("AI fix rejected — no changes made");
-                              }}
-                              className="border border-[var(--border)] text-[var(--muted-foreground)] text-xs rounded-[8px] px-3 py-1.5 hover:text-[var(--neutral-ink)]"
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
-                      <p className="text-xs text-[var(--muted-foreground)]">
-                        Go to the KB tab to find and edit the relevant entry using your note above.
-                      </p>
-                      <button
-                        disabled={resolvingId === row.id}
-                        onClick={async () => {
-                          setResolvingId(row.id);
-                          try {
-                            await resolve({ data: { id: row.id } });
-                            await loadReview();
-                            toast.success("Marked as resolved");
-                          } catch {
-                            toast.error("Failed to resolve");
-                          } finally {
-                            setResolvingId(null);
-                          }
-                        }}
-                        className="px-3 py-1.5 rounded-[8px] border border-[var(--harmony)] text-[var(--harmony)] text-xs font-medium hover:bg-[var(--harmony-lite)] disabled:opacity-50 transition-colors whitespace-nowrap ml-4"
-                      >
-                        {resolvingId === row.id ? "Resolving…" : "Mark resolved"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
 
       {/* ── ANALYTICS TAB ── */}
       {activeTab === "analytics" && (
@@ -1028,35 +669,7 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
                             <span className="text-[10px] font-medium text-[var(--heart)] inline-flex items-center gap-1">
                               <span>✗</span> Flagged
                             </span>
-                          ) : (
-                            <button
-                              className="flex-shrink-0 px-2.5 py-1 rounded-[8px] border border-[var(--heart)] text-[var(--heart)] text-[10px] font-medium hover:bg-[var(--hunger-lite)] transition-colors"
-                              onClick={async (ev) => {
-                                ev.stopPropagation();
-                                try {
-                                  await analyticsSupabase
-                                    .from("conversation_logs")
-                                    .update({
-                                      feedback: "needs_fix",
-                                      flagged_at: new Date().toISOString(),
-                                    })
-                                    .eq("id", row.id);
-                                  setAnalyticsData((prev) =>
-                                    prev.map((r) =>
-                                      r.id === row.id
-                                        ? { ...r, ...({ feedback: "needs_fix" } as any) }
-                                        : r
-                                    )
-                                  );
-                                  toast.success("Flagged — add a correction note in the Review tab");
-                                } catch {
-                                  toast.error("Failed to flag");
-                                }
-                              }}
-                            >
-                              Flag
-                            </button>
-                          )}
+                          ) : null}
                           <span className="text-[9px] text-[var(--muted-foreground)]">
                             {new Date(row.created_at).toLocaleDateString("en-US", {
                               month: "short",
