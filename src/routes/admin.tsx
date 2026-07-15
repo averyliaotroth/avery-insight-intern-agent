@@ -7,8 +7,6 @@ import { createClient } from "@supabase/supabase-js";
 import { listEntries, upsertEntry, deleteEntry } from "@/lib/knowledge.functions";
 import { backfillEmbeddings, countMissingEmbeddings } from "@/lib/backfill";
 import { summarizeEntry } from "@/lib/summarize.functions";
-import { flagConversation, updateCorrectionNote, resolveFlag } from "@/lib/review.functions";
-import { correctKBEntry } from "@/lib/correct.functions";
 
 
 
@@ -26,17 +24,6 @@ type AnalyticsRow = {
   agent_response: string | null;
 };
 
-type ReviewRow = {
-  id: string;
-  session_id: string | null;
-  user_message: string | null;
-  agent_response: string | null;
-  knowledge_chunks_used: string[] | null;
-  created_at: string;
-  feedback: string | null;
-  correction_note: string | null;
-  flagged_at: string | null;
-};
 type DateRange = "7d" | "30d" | "All";
 
 export const Route = createFileRoute("/admin")({
@@ -187,10 +174,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const backfill = useServerFn(backfillEmbeddings);
   const countMissing = useServerFn(countMissingEmbeddings);
   const summarize = useServerFn(summarizeEntry);
-  const flag = useServerFn(flagConversation);
-  const updateNote = useServerFn(updateCorrectionNote);
-  const resolve = useServerFn(resolveFlag);
-  const correct = useServerFn(correctKBEntry);
 
 
   // ← NEW: tab state lives here, in KnowledgeManager
@@ -222,21 +205,6 @@ function KnowledgeManager({ onLogout }: { onLogout: () => void }) {
   const [convoPage, setConvoPage] = useState(1);
   const CONVO_PAGE_SIZE = 10;
   const [flagging, setFlagging] = useState<string | null>(null);
-  const [reviewData, setReviewData] = useState<ReviewRow[]>([]);
-  const [reviewLoading, setReviewLoading] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [noteInput, setNoteInput] = useState("");
-  const [resolvingId, setResolvingId] = useState<string | null>(null);
-
-  const [correctingId, setCorrectingId] = useState<string | null>(null);
-  const [diffData, setDiffData] = useState<{
-    rowId: string;
-    entryId: string;
-    originalContent: string;
-    correctedContent: string;
-  } | null>(null);
-  const [approvingId, setApprovingId] = useState<string | null>(null);
-  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
 
   async function refresh() {
     setLoading(true);
